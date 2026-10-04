@@ -65,6 +65,7 @@ const CONFIG = {
 
   DATE_FORMAT: "DD/MM/YYYY",
   DATE_DISPLAY: "D MMM",
+  MONTH_DISPLAY: "MMM",
 
   LABELS: {
     APP_TITLE: "Schedule ACT",

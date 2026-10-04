@@ -25,6 +25,15 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
 
+  const pin = '<svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+
+  function monthLabel(monthIndex) {
+    const m = Number(monthIndex);
+    const pad = (n) => String(n).padStart(2, "0");
+    const tok = { MM: pad(m), MMM: CONFIG.MONTH_SHORT[m], MMMM: CONFIG.MONTH_LABELS[m] };
+    return tok[CONFIG.MONTH_DISPLAY] || CONFIG.MONTH_SHORT[m];
+  }
+
   function parseDate(dateStr) {
     if (!dateStr || dateStr === "-" || dateStr.toLowerCase() === "n/a")
       return null;
@@ -145,12 +154,12 @@
               CONFIG.CARD_LAYOUT[AppState.groupBy] || CONFIG.CARD_LAYOUT.origin;
             return `<article class="card">
                 <div class="route-top">
-                    <div><h2>${esc(item[AppState.groupBy])}</h2><div class="stem"><i></i><span>${esc(item[spec.stem])}</span></div></div>
+                    <div><h2>${esc(item[AppState.groupBy])}</h2><div class="stem">${pin}<span>${esc(item[spec.stem])}</span></div></div>
                     ${spec.cols.map(([lbl, k]) => `<div><span class="k">${esc(lbl)}</span><span class="v">${esc(item[k])}</span></div>`).join("")}
                 </div>
                 <div class="route-line">
                     <div><span class="k">${esc(CONFIG.LABELS.DEPART)}</span><span class="v date depart">${esc(formatDate(item.etd))}</span></div>
-                    <div class="mid"><span class="k">${esc(CONFIG.LABELS.ETA)}</span><span class="duration">${esc(item.duration)} ${esc(CONFIG.LABELS.DURATION_UNIT)}</span></div>
+                    <div class="mid"><span class="k">${esc(CONFIG.LABELS.ETA)}</span><span class="track"><span class="duration">${esc(item.duration)} ${esc(CONFIG.LABELS.DURATION_UNIT)}</span></span></div>
                     <div class="end"><span class="k">${esc(CONFIG.LABELS.ARRIVAL)}</span><span class="v date arrive">${esc(formatDate(item.eta))}</span></div>
                 </div>
                 <p class="card-foot">${esc(CONFIG.LABELS.VGM_BEFORE)} <b>${esc(item.vgmHours)}</b> ${esc(CONFIG.LABELS.VGM_HOURS)} <b>${esc(formatDate(item.cfsCutOff))}</b> ${esc(CONFIG.LABELS.CFS_AFTER)}</p>
@@ -173,16 +182,13 @@
 
   function init() {
     $("appTitle").textContent = CONFIG.LABELS.APP_TITLE;
-    Object.entries(CONFIG.MONTH_LABELS).forEach(([v, l]) =>
-      $("monthPicker").add(
-        new Option(`${v} = ${l}`, v, false, +v === AppState.selectedMonth),
-      ),
+    Object.entries(CONFIG.MONTH_LABELS).forEach(([v]) =>
+      $("monthPicker").add(new Option(monthLabel(v), v, false, +v === AppState.selectedMonth)),
     );
     CONFIG.GROUP_OPTIONS.forEach((o) =>
       $("groupBySelect").add(new Option(o.label, o.value)),
     );
-    $("activeMonthBadge").textContent =
-      `${CONFIG.MONTH_SHORT[AppState.selectedMonth]} (${AppState.selectedMonth})`;
+    $("activeMonthBadge").textContent = monthLabel(AppState.selectedMonth);
 
     $("currentMonthToggle").addEventListener("click", () => {
       AppState.isCurrentMonth = !AppState.isCurrentMonth;
@@ -197,15 +203,13 @@
       AppState.selectedMonth = AppState.isCurrentMonth
         ? new Date().getMonth() + 1
         : +$("monthPicker").value;
-      $("activeMonthBadge").textContent =
-        `${CONFIG.MONTH_SHORT[AppState.selectedMonth]} (${AppState.selectedMonth})`;
+      $("activeMonthBadge").textContent = monthLabel(AppState.selectedMonth);
       loadMonthData();
     });
 
     $("monthPicker").addEventListener("change", (e) => {
       AppState.selectedMonth = +e.target.value;
-      $("activeMonthBadge").textContent =
-        `${CONFIG.MONTH_SHORT[AppState.selectedMonth]} (${AppState.selectedMonth})`;
+      $("activeMonthBadge").textContent = monthLabel(AppState.selectedMonth);
       loadMonthData();
     });
     $("groupBySelect").addEventListener("change", (e) => {
@@ -216,17 +220,36 @@
       AppState.searchQuery = e.target.value.trim().toLowerCase();
       renderUI();
     });
+    $("sortDurationBtn").addEventListener("click", () => {
+      const cycle = CONFIG.SORT_CYCLE;
+      const next = cycle[(cycle.findIndex((item) => item.id === AppState.sortDurationOrder) + 1) % cycle.length];
+      AppState.sortDurationOrder = next.id;
+      $("sortDurationLabel").textContent = next.label;
+      renderUI();
+    });
     $("resetBtn").addEventListener("click", () => {
       $("searchInput").value = "";
       AppState.searchQuery = "";
+      AppState.sortDurationOrder = CONFIG.DEFAULTS.SORT_DURATION;
+      $("sortDurationLabel").textContent = CONFIG.SORT_CYCLE[0].label;
       renderUI();
     });
     $("themeToggle").addEventListener("click", () => {
-      AppState.theme = AppState.theme === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", AppState.theme);
+      applyTheme(AppState.theme === "dark" ? "light" : "dark");
     });
 
+    applyTheme(document.documentElement.getAttribute("data-theme") || CONFIG.THEME.default);
     loadMonthData();
+  }
+
+  function applyTheme(theme) {
+    AppState.theme = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", AppState.theme);
+    const btn = $("themeToggle");
+    const dark = AppState.theme === "dark";
+    btn.setAttribute("aria-pressed", String(dark));
+    btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    try { localStorage.setItem(CONFIG.THEME.storageKey, AppState.theme); } catch (e) {}
   }
   window.addEventListener("DOMContentLoaded", init);
 })();
