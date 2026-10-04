@@ -146,6 +146,9 @@
     $("itemCount").textContent = String(data.length);
     $("dataSourceTag").textContent = "Data: Live sheets";
     $("dataSourceTag").className = "source is-live";
+    const all = CONFIG.DEFAULTS.CATEGORY_FILTER;
+    const cats = [all, ...new Set(AppState.rawRows.map((r) => r[AppState.groupBy]).filter((v) => v && v !== CONFIG.EMPTY_TOKEN))].sort((a, b) => (a === all ? -1 : b === all ? 1 : a.localeCompare(b)));
+    $("categoryPillContainer").innerHTML = cats.map((cat) => `<button type="button" class="pill" data-cat="${esc(cat)}" aria-pressed="${AppState.selectedCategory === cat}">${esc(cat)}</button>`).join("");
 
     $("cards").innerHTML = data.length
       ? data
@@ -214,6 +217,13 @@
     });
     $("groupBySelect").addEventListener("change", (e) => {
       AppState.groupBy = e.target.value;
+      AppState.selectedCategory = CONFIG.DEFAULTS.CATEGORY_FILTER;
+      renderUI();
+    });
+    $("categoryPillContainer").addEventListener("click", (e) => {
+      const btn = e.target.closest(".pill");
+      if (!btn) return;
+      AppState.selectedCategory = btn.dataset.cat;
       renderUI();
     });
     $("searchInput").addEventListener("input", (e) => {
@@ -230,6 +240,7 @@
     $("resetBtn").addEventListener("click", () => {
       $("searchInput").value = "";
       AppState.searchQuery = "";
+      AppState.selectedCategory = CONFIG.DEFAULTS.CATEGORY_FILTER;
       AppState.sortDurationOrder = CONFIG.DEFAULTS.SORT_DURATION;
       $("sortDurationLabel").textContent = CONFIG.SORT_CYCLE[0].label;
       renderUI();
