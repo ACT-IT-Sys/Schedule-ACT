@@ -281,13 +281,13 @@ button { cursor: pointer; }
     box-shadow: var(--shadow-sm);
 }
 
-.select.bare {
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    min-height: 40px;
-    padding: 0;
+.select,
+select option {
+    background-color: var(--bg-elev);
+    color: var(--text);
 }
+
+[data-theme="dark"] select { color-scheme: dark; }
 
 .search-wrap {
     position: relative;
@@ -441,28 +441,78 @@ main { flex: 1; padding: 16px 0 28px; }
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 14px;
+    padding: 14px 14px 12px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.card-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: flex-start;
+.route-top {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 8px;
+    align-items: start;
 }
 
 .card h2 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     letter-spacing: -0.03em;
-    line-height: 1.2;
+    line-height: 1.15;
     word-break: break-word;
 }
 
+.stem {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.stem i {
+    width: 8px;
+    flex: 0 0 8px;
+    position: relative;
+}
+
+.stem i::before,
+.stem i::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    background: var(--border-strong);
+}
+
+.stem i::before {
+    top: 2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    transform: translateX(-3px);
+    background: var(--text);
+}
+
+.stem i::after {
+    top: 10px;
+    bottom: 2px;
+    width: 1px;
+}
+
+.route-line {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: end;
+}
+
+.route-line .mid { text-align: center; }
+.route-line .end { text-align: right; }
+
 .duration {
+    display: inline-block;
+    margin-top: 2px;
     font-family: var(--mono);
     font-size: 0.72rem;
     font-weight: 700;
@@ -470,25 +520,19 @@ main { flex: 1; padding: 16px 0 28px; }
     background: var(--amber-soft);
     border: 1.5px dashed var(--amber-border);
     border-radius: 999px;
-    padding: 5px 8px;
+    padding: 4px 8px;
     white-space: nowrap;
 }
 
-.meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 12px;
-    position: relative;
+.card-foot {
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
 }
 
-.meta-grid::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 2px;
-    bottom: 2px;
-    width: 1px;
-    background: var(--border);
+.card-foot b {
+    color: var(--brand-strong);
+    font-weight: 700;
 }
 
 .k {

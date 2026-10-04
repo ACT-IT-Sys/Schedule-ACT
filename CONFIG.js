@@ -39,7 +39,8 @@ const CONFIG = {
         voyage: ["voyage", "voyage no", "voy", "vno"],
         etd: ["etd", "depart", "departure", "etd date"],
         eta: ["eta", "arrival", "arrive", "eta date"],
-        cfsCutOff: ["cfs cut off", "cfs cutoff", "cfs_cutoff", "cfs"]
+        cfsCutOff: ["cfs cut off", "cfs cutoff", "cfs_cutoff", "cfs"],
+        vgmHours: ["vgm", "vgm hours", "vgm cut off", "vgm cutoff"]
     },
 
     DEFAULTS: {
@@ -47,7 +48,9 @@ const CONFIG = {
         CURRENT_MONTH_ACTIVE: true,
         CATEGORY_FILTER: "ALL",
         SORT_DURATION: "none",
-        THEME: "light"
+        THEME: "light",
+        DESTINATION: "Surabaya",
+        VGM_HOURS: "4"
     },
 
     DATE_FORMAT: "DD/MM/YYYY",
@@ -65,7 +68,11 @@ const CONFIG = {
         EMPTY_HINT: "Try another month, category, or search.",
         LOADING: "Fetching",
         DEPART: "Depart",
-        ARRIVAL: "Arrival"
+        ARRIVAL: "Arrival",
+        ETA: "ETA",
+        VGM_BEFORE: "VGM cut-off",
+        VGM_HOURS: "hours before",
+        CFS_AFTER: "CFS cut-off"
     },
 
     SEARCH_FIELDS: ["origin", "vessel", "voyage", "destination"],
@@ -86,10 +93,10 @@ const CONFIG = {
     ],
 
     CARD_LAYOUT: {
-        origin: { sub1: ["Vessel", "vessel"], sub2: ["Voyage", "voyage"], foot: ["Dest", "destination"] },
-        vessel: { sub1: ["Origin", "origin"], sub2: ["Voyage", "voyage"], foot: ["Dest", "destination"] },
-        voyage: { sub1: ["Vessel", "vessel"], sub2: ["Origin", "origin"], foot: ["Dest", "destination"] },
-        destination: { sub1: ["Origin", "origin"], sub2: ["Vessel", "vessel"], foot: ["Voyage", "voyage"] }
+        origin: { stem: "destination", cols: [["Vessel", "vessel"], ["Voyage", "voyage"]] },
+        destination: { stem: "origin", cols: [["Vessel", "vessel"], ["Voyage", "voyage"]] },
+        vessel: { stem: "destination", cols: [["Origin", "origin"], ["Voyage", "voyage"]] },
+        voyage: { stem: "destination", cols: [["Vessel", "vessel"], ["Origin", "origin"]] }
     },
 
     /**

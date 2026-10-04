@@ -89,7 +89,7 @@
             etd: CONFIG.MISSING_DATE,
             eta: CONFIG.MISSING_DATE,
             cfsCutOff: CONFIG.MISSING_DATE,
-            duration: 0
+            vgmHours: CONFIG.DEFAULTS.VGM_HOURS,
         };
 
         Object.entries(rawRow || {}).forEach(([key, val]) => {
@@ -102,7 +102,17 @@
         });
 
         normalized.duration = computeDurationDays(normalized.etd, normalized.eta);
+        if (!normalized.vgmHours || normalized.vgmHours === CONFIG.EMPTY_TOKEN) {
+            normalized.vgmHours = String(CONFIG.DEFAULTS.VGM_HOURS);
+        }
         return normalized;
+    }
+
+    function applyPlaceDefaults(row) {
+        if (!row.destination || row.destination === CONFIG.EMPTY_TOKEN) {
+            row.destination = CONFIG.DEFAULTS.DESTINATION;
+        }
+        return row;
     }
 
     function rowLooksEmpty(row) {
@@ -177,7 +187,7 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    const parsed = (results.data || []).map(normalizeRowKeys).filter((row) => !rowLooksEmpty(row));
+                    const parsed = (results.data || []).map(normalizeRowKeys).filter((row) => !rowLooksEmpty(row)).map(applyPlaceDefaults);
                     if (!parsed.length) {
                         reject(new Error("Empty schedule tab"));
                         return;
@@ -203,13 +213,13 @@
         const spec = CONFIG.CARD_LAYOUT[groupBy] || CONFIG.CARD_LAYOUT.origin;
         const pair = ([label, key]) => ({ label, value: item[key] });
         return {
-            headerVal: item[groupBy] || CONFIG.EMPTY_TOKEN,
-            topSub1: pair(spec.sub1),
-            topSub2: pair(spec.sub2),
-            foot: pair(spec.foot),
+            title: item[groupBy] || CONFIG.EMPTY_TOKEN,
+            stem: item[spec.stem] || CONFIG.EMPTY_TOKEN,
+            cols: spec.cols.map(pair),
             etd: item.etd,
             eta: item.eta,
             cfsCutOff: item.cfsCutOff,
+            vgmHours: item.vgmHours || CONFIG.DEFAULTS.VGM_HOURS,
             duration: item.duration
         };
     }
@@ -269,32 +279,38 @@
             const card = document.createElement("article");
             card.className = "card";
             card.innerHTML = `
-                <div class="card-head">
-                    <h2>${escapeHtml(layout.headerVal)}</h2>
-                    <div class="duration">${escapeHtml(layout.duration)} ${escapeHtml(CONFIG.LABELS.DURATION_UNIT)}</div>
+                <div class="route-top">
+                    <div>
+                        <h2>${escapeHtml(layout.title)}</h2>
+                        <div class="stem"><i></i><span>${escapeHtml(layout.stem)}</span></div>
+                    </div>
+                    ${layout.cols.map((col) => `
+                        <div>
+                            <span class="k">${escapeHtml(col.label)}</span>
+                            <span class="v">${escapeHtml(col.value)}</span>
+                        </div>`).join("")}
                 </div>
-                <div class="meta-grid">
-                    <div>
-                        <span class="k">${escapeHtml(layout.topSub1.label)}</span>
-                        <span class="v">${escapeHtml(layout.topSub1.value)}</span>
-                    </div>
-                    <div>
-                        <span class="k">${escapeHtml(layout.topSub2.label)}</span>
-                        <span class="v">${escapeHtml(layout.topSub2.value)}</span>
-                    </div>
+                <div class="route-line">
                     <div>
                         <span class="k">${escapeHtml(CONFIG.LABELS.DEPART)}</span>
                         <span class="v date depart">${escapeHtml(formatScheduleDate(layout.etd))}</span>
                     </div>
-                    <div>
+                    <div class="mid">
+                        <span class="k">${escapeHtml(CONFIG.LABELS.ETA)}</span>
+                        <span class="duration">${escapeHtml(layout.duration)} ${escapeHtml(CONFIG.LABELS.DURATION_UNIT)}</span>
+                    </div>
+                    <div class="end">
                         <span class="k">${escapeHtml(CONFIG.LABELS.ARRIVAL)}</span>
                         <span class="v date arrive">${escapeHtml(formatScheduleDate(layout.eta))}</span>
                     </div>
                 </div>
-                <div class="card-foot">
-                    <span><strong>${escapeHtml(layout.foot.label)}:</strong> ${escapeHtml(layout.foot.value)}</span>
-                    <span class="chip">CFS ${escapeHtml(formatScheduleDate(layout.cfsCutOff))}</span>
-                </div>`;
+                <p class="card-foot">
+                    ${escapeHtml(CONFIG.LABELS.VGM_BEFORE)}
+                    <b>${escapeHtml(layout.vgmHours)}</b>
+                    ${escapeHtml(CONFIG.LABELS.VGM_HOURS)}
+                    <b>${escapeHtml(formatScheduleDate(layout.cfsCutOff))}</b>
+                    ${escapeHtml(CONFIG.LABELS.CFS_AFTER)}
+                </p>`;
             grid.appendChild(card);
         });
     }
@@ -507,7 +523,6 @@
         $("appTitle").textContent = CONFIG.LABELS.APP_TITLE;
         $("currentMonthLabel").textContent = CONFIG.LABELS.CURRENT_MONTH;
         $("appTagline").textContent = CONFIG.LABELS.TAGLINE;
-        $("cfsHelp").textContent = CONFIG.LABELS.CFS_HELP;
         document.title = CONFIG.LABELS.APP_TITLE;
         applyTheme(document.documentElement.getAttribute("data-theme") || CONFIG.THEME.default);
         setupEventListeners();
