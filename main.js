@@ -45,7 +45,7 @@
       : null;
   }
 
-  function formatDate(dateStr) {
+  function formatDate(dateStr, pattern) {
     const d = parseDate(dateStr);
     if (!d) return dateStr || CONFIG.MISSING_DATE;
     const m = d.getMonth() + 1,
@@ -59,7 +59,7 @@
       DD: pad(d.getDate()),
       D: d.getDate(),
     };
-    return CONFIG.DATE_DISPLAY.replace(
+    return (pattern || CONFIG.DATE_DISPLAY).replace(
       /YYYY|YY|MMMM|MMM|MM|DD|D/g,
       (t) => tok[t],
     );
@@ -143,6 +143,7 @@
           : b.duration - a.duration,
       );
 
+    window.ACT = { visible: data, parseDate, format: formatDate };
     $("itemCount").textContent = String(data.length);
     $("dataSourceTag").textContent = "Data: Live sheets";
     $("dataSourceTag").className = "source is-live";

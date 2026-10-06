@@ -497,3 +497,58 @@ main {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
+
+/* ============================================================
+   BULK — checkpoint
+   Button: 🖨️ immediately right of #dataSourceTag.
+   Always available, including an empty list.
+   Click prompts the title, then builds this sheet.
+   Blank title uses BULK.TITLE.
+
+   HEADER
+   img/bulk-header.svg is the plate only (595×294, A4 width).
+   Logo and ship stay in the file. Do not put the title in the SVG.
+   Title is drawn in the band over the plate, from the prompt.
+   Overflow ellipsizes. Header height does not grow.
+
+   BODY
+   Starts under the plate and grows with the filtered sheet rows.
+   Background is BULK.BODY_BG from CONFIG.js, not a fill in the SVG.
+   No empty origin group. Page height is header plus groups.
+   Print/PDF repeats the plate per page. Do not stretch the SVG.
+
+   GROUPS
+   Key is origin → destination. Title is "ORIGIN - DESTINATION".
+   Import only: Indonesian destination, or the Surabaya default.
+   Order follows BULK.ORIGIN_ORDER, then unknown origins.
+   Inside a group, sort by ETD, then vessel.
+
+   COLUMNS
+   BULK.ORDER is the only column source. Order in that array is
+   the table order. A removed key drops the header and the cells.
+   Default: vessel, voyage, cfsCutOff, etd, duration, eta.
+   Headers are labels. duration is a day count, not a date.
+   Blank vessel prints T.B.N.
+
+   DATES
+   etd, eta, and cfsCutOff each use BULK.DATE_OF
+   (MM-DD, DD/MMM, D MMM, DD/MM/YYYY). Same parser as the card.
+   Unparseable values use MISSING_DATE. Duration uses DURATION_UNIT.
+
+   COLOR
+   One soft token per origin, from ORIGIN_COLORS, else PALETTE.
+   Not random, not by page position. Header bar and column-header
+   row only. Body stays BODY_BG. Ink is dark.
+   Do not use warning red or yellow for origin fills.
+
+   FOOT
+   VGM is not a column. One line per group, bottom right.
+   "VGM cut-off: {hours} hours before CFS cut-off".
+   Hours from the row, else VGM_HOURS. Left side stays empty.
+   Sheet rules live in bulk.css. This file only places the button.
+   ============================================================ */
+.source-side { display: flex; align-items: center; gap: 8px; }
+.bulk-btn {
+  width: 36px; height: 36px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--bg-elev); font-size: 1rem;
+}
