@@ -63,7 +63,7 @@ const CONFIG = {
     VGM_HOURS: "4",
   },
 
-  DATE_FORMAT: "DD MMM",
+  DATE_FORMAT: "DD/MM/YYYY",
   DATE_DISPLAY: "D MMM",
   MONTH_DISPLAY: "MMM",
 
@@ -153,14 +153,33 @@ const CONFIG = {
   THEME: { storageKey: "schedule-act-theme", default: "light" },
 
   BULK: {
-    HEADER: "img/bulk-header.svg",
+    HEADER: "img/bulk-header.webp",
     CSS: "bulk.css",
     BTN_ID: "bulkBtn",
     WINDOW: "bulk",
     KEY_SEP: "\0",
     JOIN: " - ",
+    SINGLE_IMAGE: 1,
+    PAGE_CAP: 3,
+    PAGE_PX: 1123,
+    RASTER:
+      "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+    AS: [
+      ["pdf", ".PDF"],
+      ["jpeg", ".JPEG"],
+      ["png", ".PNG"],
+    ],
+    LAYOUTS: [
+      ["single", "Single column"],
+      ["compact", "Compact"],
+    ],
+    AS_DEFAULT: "jpeg",
+    LAYOUT_DEFAULT: "single",
     TITLE: "LCL import consol schedules",
     TITLE_PROMPT: "Schedule title",
+    PRINT_AS: "Print as",
+    FORMAT: "Format",
+    EXECUTE: "Execute",
     POPUP: "Allow popups to print the bulk sheet.",
     BODY_BG: "#f4f8fb",
     TBN: "T.B.N.",
@@ -173,7 +192,7 @@ const CONFIG = {
       "Shanghai",
       "Bangkok",
     ],
-    DATE_OF: { etd: "DD/MM/YYYY", eta: "DD/MM/YYYY", cfsCutOff: "DD/MM/YYYY" },
+    DATE_OF: { etd: "DD MMM YY", eta: "DD MMM YY", cfsCutOff: "DD MMM YY" },
     ORDER: [
       { key: "vessel", label: "VESSEL" },
       { key: "voyage", label: "VOYAGE" },

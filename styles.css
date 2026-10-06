@@ -552,3 +552,8 @@ main {
   width: 36px; height: 36px; border: 1px solid var(--border);
   border-radius: 999px; background: var(--bg-elev); font-size: 1rem;
 }
+.bulk-modal { border: 0; border-radius: 14px; padding: 14px; width: min(280px, 92vw); }
+.bulk-modal::backdrop { background: rgba(15, 23, 42, 0.35); }
+.bulk-modal label { display: block; margin: 8px 0; font-size: 0.85rem; }
+.bulk-modal input[type="text"] { width: 100%; min-height: 36px; }
+.bulk-modal menu { display: flex; justify-content: flex-end; gap: 8px; margin: 12px 0 0; padding: 0; }
