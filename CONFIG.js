@@ -99,9 +99,9 @@ const CONFIG = {
   ],
 
   SORT_CYCLE: [
-    { id: "none", label: "Duration: Default" },
-    { id: "asc", label: "Duration: Shortest" },
-    { id: "desc", label: "Duration: Longest" },
+    { id: "none", label: "➖" },
+    { id: "asc", label: "🔽" },
+    { id: "desc", label: "🔼" },
   ],
 
   CARD_LAYOUT: {
