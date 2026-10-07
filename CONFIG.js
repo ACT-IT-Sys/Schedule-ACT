@@ -161,7 +161,7 @@ const CONFIG = {
     JOIN: " - ",
     SINGLE_IMAGE: 1,
     PAGE_CAP: 3,
-    PAGE_PX: 1123,
+    PAGE_PX: 1200, //1123
     RASTER:
       "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
     AS: [
