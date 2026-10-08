@@ -48,6 +48,10 @@ body {
   gap: 8px;
   align-items: start;
 }
+
+section + section {
+  margin: -10px 0px;
+}
 .pair section {
   margin: 8px 0 0;
 }
@@ -86,7 +90,14 @@ tr:nth-child(even) {
   background: #fff;
 }
 
-td {
+td + td + td {
+  border: 1px solid #c5d3df;
+  padding: 3px 20px 3px 0px;
+  text-align: right;
+  font-size: 11px;
+}
+
+td:nth-child(-n + 2) {
   border: 1px solid #c5d3df;
   padding: 3px 0px 3px 23px;
   text-align: left;
