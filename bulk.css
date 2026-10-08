@@ -98,6 +98,7 @@ td + td + td {
 }
 
 td:nth-child(-n + 2) {
+  letter-spacing: 0.05em;
   border: 1px solid #c5d3df;
   padding: 3px 0px 3px 23px;
   text-align: left;

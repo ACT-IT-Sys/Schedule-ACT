@@ -4,7 +4,7 @@
  * @format
  */
 
-#groupBySelect{
+#groupBySelect {
   display: none !important;
 }
 
@@ -128,10 +128,19 @@ button {
   place-items: center;
   box-shadow: var(--shadow-sm);
 }
-.icon-btn svg { width: 18px; height: 18px; }
-.theme-icon-moon { display: none; }
-[data-theme="dark"] .theme-icon-sun { display: none; }
-[data-theme="dark"] .theme-icon-moon { display: block; }
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.theme-icon-moon {
+  display: none;
+}
+[data-theme="dark"] .theme-icon-sun {
+  display: none;
+}
+[data-theme="dark"] .theme-icon-moon {
+  display: block;
+}
 .brand h1 {
   margin: 0;
   font-size: 1.05rem;
@@ -157,7 +166,11 @@ button {
   gap: 8px;
   padding: 8px 0 12px;
 }
-.tool-actions { display: flex; gap: 8px; align-items: center; }
+.tool-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 .pills {
   display: flex;
   gap: 8px;
@@ -547,13 +560,46 @@ main {
    Hours from the row, else VGM_HOURS. Left side stays empty.
    Sheet rules live in bulk.css. This file only places the button.
    ============================================================ */
-.source-side { display: flex; align-items: center; gap: 8px; }
-.bulk-btn {
-  width: 36px; height: 36px; border: 1px solid var(--border);
-  border-radius: 999px; background: var(--bg-elev); font-size: 1rem;
+.source-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.bulk-modal { border: 0; border-radius: 14px; padding: 14px; width: min(280px, 92vw); }
-.bulk-modal::backdrop { background: rgba(15, 23, 42, 0.35); }
-.bulk-modal label { display: block; margin: 8px 0; font-size: 0.85rem; }
-.bulk-modal input[type="text"] { width: 100%; min-height: 36px; }
-.bulk-modal menu { display: flex; justify-content: flex-end; gap: 8px; margin: 12px 0 0; padding: 0; }
+.bulk-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  font-size: 1rem;
+}
+.bulk-modal {
+  border: 0;
+  border-radius: 14px;
+  padding: 14px;
+  width: min(280px, 92vw);
+}
+body > dialog > form > input {
+  width: 100%;
+  min-height: 36px;
+  margin-top: 8px;
+}
+.bulk-modal::backdrop {
+  background: rgba(15, 23, 42, 0.35);
+}
+.bulk-modal label {
+  display: block;
+  margin: 8px 0;
+  font-size: 0.85rem;
+}
+.bulk-modal input[type="text"] {
+  width: 100%;
+  min-height: 36px;
+}
+.bulk-modal menu {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
