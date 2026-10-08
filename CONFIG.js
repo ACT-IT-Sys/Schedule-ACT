@@ -181,7 +181,7 @@ const CONFIG = {
     FORMAT: "Format",
     EXECUTE: "Execute",
     POPUP: "Allow popups to print the bulk sheet.",
-    BODY_BG: "#f4f8fb",
+    BODY_BG: "#ffffff",
     TBN: "T.B.N.",
     VGM: "VGM cut-off:",
     ORIGIN_ORDER: [
@@ -192,7 +192,7 @@ const CONFIG = {
       "Shanghai",
       "Bangkok",
     ],
-    DATE_OF: { etd: "DD MMM YY", eta: "DD MMM YY", cfsCutOff: "DD MMM YY" },
+    DATE_OF: { etd: "DD MMM", eta: "DD MMM", cfsCutOff: "DD MMM" },
     ORDER: [
       { key: "vessel", label: "VESSEL" },
       { key: "voyage", label: "VOYAGE" },

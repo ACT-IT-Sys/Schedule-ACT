@@ -73,7 +73,7 @@
       "th",
       cols.map((x) => x.label),
       ` style="${paint}"`,
-    )}${tableRows}</table><p>${esc(footerText)}</p></section>`;
+    )}${tableRows}</table><p style="${paint}">${esc(footerText)}</p></section>`;
   };
 
   const sheet = (rows, title, layout) => {
