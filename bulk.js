@@ -69,7 +69,7 @@
       .join("");
     const footerText = `${bulk.VGM} ${list[0].vgmHours} ${L().VGM_HOURS} ${L().CFS_AFTER}`;
 
-    return `<section><h2 style="${paint}">${esc([origin, dest].join(bulk.JOIN))}</h2><table>${tr(
+    return `<section><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2><table>${tr(
       "th",
       cols.map((x) => x.label),
       ` style="${paint}"`,
