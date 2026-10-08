@@ -164,16 +164,17 @@ const CONFIG = {
     PAGE_PX: 1200, //1123
     RASTER:
       "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+    PDF: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
     AS: [
-      ["pdf", ".PDF"],
-      ["jpeg", ".JPEG"],
-      ["png", ".PNG"],
+      ["pdf", "Interactive PDF"],
+      ["print", "Print PDF"],
+      ["jpeg", "JPEG"],
     ],
     LAYOUTS: [
       ["single", "Single column"],
       ["compact", "Compact"],
     ],
-    AS_DEFAULT: "jpeg",
+    AS_DEFAULT: "pdf",
     LAYOUT_DEFAULT: "single",
     TITLE: "LCL import consol schedules",
     TITLE_PROMPT: "Schedule title",
@@ -231,5 +232,15 @@ const CONFIG = {
       { bg: "#f6e0e8", ink: "#6b3048" },
       { bg: "#e4e8ee", ink: "#334155" },
     ],
+  },
+
+  CP: {
+    TAB: "CP",
+    EMPTY: "—",
+    SEP: " | ",
+    FIELDS: ["name", "mobile", "email"],
+    TEL: "tel:",
+    MAIL: "mailto:",
+    PLATFORMS: [{ key: "wa", icon: "img/wa.webp" }],
   },
 };

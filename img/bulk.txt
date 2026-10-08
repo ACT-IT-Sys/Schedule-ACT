@@ -1,0 +1,86 @@
+/**
+ * Bulk sheet orchestrator. High-performance, DRY-compliant interactive PDF/image exporter.
+ * @format
+ */
+(function () {
+  const B = () => CONFIG.BULK, L = () => CONFIG.LABELS, esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const parseSafeDate = (v) => ACT.parseDate(v) || 0, norm = (s) => String(s ?? "").toLowerCase();
+
+  const tint = (o) => B().ORIGIN_COLORS[norm(o)] || B().PALETTE[[...o].reduce((a, c) => a + c.charCodeAt(0), 0) % B().PALETTE.length];
+  const value = (r, k) => k === "vessel" && r.vessel === CONFIG.EMPTY_TOKEN ? B().TBN : k === "duration" ? `${r.duration} ${L().DURATION_UNIT}` : B().DATE_OF[k] ? (ACT.parseDate(r[k]) ? ACT.format(r[k], B().DATE_OF[k]) : CONFIG.MISSING_DATE) : r[k];
+  const tr = (tag, items, attr = "") => `<tr${attr}>${items.map(x => `<${tag}>${x}</${tag}>`).join("")}</tr>`;
+
+  const group = (rows) => rows.filter(r => B().ID_PLACES.some(p => norm(r.destination).includes(p))).reduce((m, r) => m.set([r.origin, r.destination].join(B().KEY_SEP), [...(m.get([r.origin, r.destination].join(B().KEY_SEP)) || []), r]), new Map());
+
+  const section = ([key, list]) => {
+    const bulk = B(), [origin, dest] = key.split(bulk.KEY_SEP), c = tint(origin), paint = `background:${c.bg};color:${c.ink}`;
+    const tableRows = list.sort((a, b) => parseSafeDate(a.etd) - parseSafeDate(b.etd) || a.vessel.localeCompare(b.vessel)).map(r => tr("td", bulk.ORDER.map(x => esc(value(r, x.key))))).join("");
+    return `<section><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2><table>${tr("th", bulk.ORDER.map(x => esc(x.label)), ` style="${paint}"`)}${tableRows}</table><p style="${paint}">${esc(`${bulk.VGM} ${list[0]?.vgmHours || CONFIG.DEFAULTS.VGM_HOURS} ${L().VGM_HOURS} ${L().CFS_AFTER}`)}</p></section>`;
+  };
+
+  const sheet = (rows, title, layout) => {
+    const bulk = B(), rank = (o) => bulk.ORIGIN_ORDER.findIndex(s => norm(s) === norm(o)) + 1 || 99;
+    const sorted = [...group(rows)].sort(([a], [b]) => rank(a.split(bulk.KEY_SEP)[0]) - rank(b.split(bulk.KEY_SEP)[0]) || a.localeCompare(b));
+    const body = layout === "compact" ? sorted.reduce((h, g, i) => h + (i % 2 ? "" : `<div class="pair">`) + section(g) + (i % 2 || i === sorted.length - 1 ? "</div>" : ""), "") : sorted.map(section).join("");
+    return `<article class="sheet" id="sheet-root" style="background:${bulk.BODY_BG}"><header class="plate"><img src="${new URL(bulk.HEADER, location.href)}" alt=""><h1>${esc(title)}</h1></header>${body}</article>`;
+  };
+
+  const doc = (title, html) => `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><link rel="stylesheet" href="${new URL(B().CSS, location.href)}"><body>${html}`;
+
+  const loadDeps = async () => {
+    const deps = [];
+    if (!window.html2canvas) deps.push(B().RASTER);
+    if (!window.jspdf) deps.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    for (const src of deps) await new Promise((res, rej) => document.head.append(Object.assign(document.createElement("script"), { src, onload: res, onerror: rej })));
+  };
+
+  const exportPDF = async (el, title) => {
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true }), imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pdf = new window.jspdf.jsPDF("p", "mm", "a4"), wMm = 210, hMm = 297, scale = wMm / (el.offsetWidth || 595);
+    const imgH = (canvas.height * wMm) / canvas.width;
+    let left = imgH, pos = 0, pages = 1;
+
+    pdf.addImage(imgData, "JPEG", 0, pos, wMm, imgH);
+    while ((left -= hMm) > 0) { pos = left - imgH; pdf.addPage(); pdf.addImage(imgData, "JPEG", 0, pos, wMm, imgH); pages++; }
+
+    el.querySelectorAll("a").forEach(link => {
+      const r = link.getBoundingClientRect(), cr = el.getBoundingClientRect();
+      const topGlobal = (r.top - cr.top) * scale, pageIdx = Math.floor(topGlobal / hMm) + 1;
+      if (pageIdx <= pages) { pdf.setPage(pageIdx); pdf.link(r.left - cr.left * scale, topGlobal % hMm, r.width * scale, r.height * scale, { url: link.href }); }
+    });
+    pdf.save(`${title}.pdf`);
+  };
+
+  const save = async (title, html, kind) => {
+    await loadDeps();
+    const frame = document.body.append(Object.assign(document.createElement("iframe"), { style: "position:fixed;left:-9999px;width:595px;height:2000px;border:0" })) || document.body.lastChild;
+    frame.srcdoc = doc(title, html);
+    await new Promise(res => frame.onload = res);
+    const el = frame.contentDocument.getElementById("sheet-root");
+
+    if (kind === "pdf") return await exportPDF(el, title).then(() => frame.remove());
+
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true }), p = B().PAGE_PX * 2, cuts = !B().SINGLE_IMAGE || Math.ceil(canvas.height / p) > B().PAGE_CAP ? Math.ceil(canvas.height / p) : 1;
+    for (let n = 0; n < cuts; n++) {
+      const part = Object.assign(document.createElement("canvas"), { width: canvas.width, height: cuts > 1 ? Math.min(p, canvas.height - n * p) : canvas.height });
+      part.getContext("2d").drawImage(canvas, 0, n * p, part.width, part.height, 0, 0, part.width, part.height);
+      Object.assign(document.createElement("a"), { href: part.toDataURL(kind === "png" ? "image/png" : "image/jpeg", 0.92), download: `${title}${cuts > 1 ? "-" + (n + 1) : ""}.${kind}` }).click();
+    }
+    frame.remove();
+  };
+
+  const ask = () => new Promise(done => {
+    const bulk = B(), d = document.body.append(Object.assign(document.createElement("dialog"), { className: "bulk-modal" })) || document.body.lastChild;
+    const radios = (n, arr, def) => arr.map(([id, lbl]) => `<label><input type="radio" name="${n}" value="${id}"${id === def ? " checked" : ""}> ${esc(lbl)}</label>`).join("");
+    d.innerHTML = `<form><input name="title" value="${esc(bulk.TITLE)}"><p>${esc(bulk.PRINT_AS)}</p>${radios("as", bulk.AS, bulk.AS_DEFAULT)}<p>${esc(bulk.FORMAT)}</p>${radios("layout", bulk.LAYOUTS, bulk.LAYOUT_DEFAULT)}<menu><button type="submit">${esc(bulk.EXECUTE)}</button></menu></form>`;
+    d.showModal();
+    const close = (v) => { d.remove(); done(v); };
+    d.querySelector("form").onsubmit = (e) => { e.preventDefault(); const f = new FormData(e.target); close({ title: String(f.get("title") || "").trim() || bulk.TITLE, as: f.get("as"), layout: f.get("layout") }); };
+    d.addEventListener("cancel", () => close(null));
+    d.addEventListener("click", (e) => e.target === d && close(null));
+  });
+
+  const run = async () => { const pick = await ask(); if (pick) await save(pick.title, sheet((window.ACT && ACT.visible) || [], pick.title, pick.layout), pick.as).catch(() => alert(B().POPUP)); };
+  const bind = () => document.getElementById(B().BTN_ID)?.addEventListener("click", run);
+  document.readyState === "loading" ? addEventListener("DOMContentLoaded", bind) : bind();
+})();
