@@ -219,14 +219,14 @@
     return new Promise((done) => {
       const d = document.body.append(Object.assign(document.createElement("dialog"), { className: "bulk-modal" })) || document.body.lastChild;
       const radios = (n, arr, def) => arr.map(([id, lbl]) => `<label><input type="radio" name="${n}" value="${id}"${id === def ? " checked" : ""}> ${esc(lbl)}</label>`).join("");
-      const opts = [`<option value="">${esc(CONFIG.CP.EMPTY)}</option>`, ...rows.map((r, i) => `<option value="${i}">${esc(r.name)}</option>`)].join("");
+      const opts = [`<option value="">${esc(CONFIG.CP.EMPTY)}</option>`, ...rows.map((r, i) => `<option value="${i + 1}"${i + 1 === CONFIG.CP.DEFAULT ? " selected" : ""}>${esc(r.name)} - ${esc(CONFIG.CP.ROW)}${i + 1}</option>`)].join("");
       d.innerHTML = `<form><input name="title" value="${esc(bulk.TITLE)}"><p>${esc(bulk.PRINT_AS)}</p>${radios("as", bulk.AS, bulk.AS_DEFAULT)}<p>${esc(bulk.FORMAT)}</p>${radios("layout", bulk.LAYOUTS, bulk.LAYOUT_DEFAULT)}<menu><select name="cp">${opts}</select><button type="submit">${esc(bulk.EXECUTE)}</button></menu></form>`;
       d.showModal();
       const close = (v) => { d.remove(); done(v); };
       d.querySelector("form").onsubmit = (e) => {
         e.preventDefault();
-        const f = new FormData(e.target), i = f.get("cp");
-        close({ title: String(f.get("title") || "").trim() || bulk.TITLE, as: f.get("as"), layout: f.get("layout"), cp: i === "" ? null : rows[i] });
+        const f = new FormData(e.target);
+        close({ title: String(f.get("title") || "").trim() || bulk.TITLE, as: f.get("as"), layout: f.get("layout"), cp: f.get("cp") ? rows[+f.get("cp") - 1] : null });
       };
       d.addEventListener("cancel", () => close(null));
       d.addEventListener("click", (e) => e.target === d && close(null));

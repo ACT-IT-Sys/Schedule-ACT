@@ -237,6 +237,8 @@ const CONFIG = {
   CP: {
     TAB: "CP",
     EMPTY: "—",
+    DEFAULT: 0,
+    ROW: "row-",
     SEP: " | ",
     FIELDS: ["name", "mobile", "email"],
     TEL: "tel:",
