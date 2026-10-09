@@ -61,7 +61,8 @@
         ),
       )
       .join("");
-    return `<section><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2><table>${tr(
+    const port = list.find((r) => r.port)?.port;
+    return `<section><header class="route"><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2></span>${port ? `<span style="${paint}">${esc(port.toUpperCase())}</span>` : ""}</header><table>${tr(
       "th",
       bulk.ORDER.map((x) => esc(x.label)),
       ` style="${paint}"`,
@@ -70,14 +71,59 @@
 
   const foot = (cp) => {
     if (!cp) return "";
-    const c = CONFIG.CP, bits = [];
+    const c = CONFIG.CP,
+      bits = [];
     if (cp.name) bits.push(`<b>${esc(cp.name)}</b>`);
-    if (cp.mobile) bits.push(`<a href="${c.TEL}${esc(String(cp.mobile).replace(/\D/g, ""))}">${esc(cp.mobile)}</a>`);
-    if (cp.email) bits.push(`<a href="${c.MAIL}${esc(cp.email)}">${esc(cp.email)}</a>`);
-    const marks = c.PLATFORMS.filter((p) => cp[p.key]).map((p) => `<a href="${esc(cp[p.key])}"><img src="${new URL(p.icon, location.href)}" alt=""></a>`).join("");
+    if (cp.mobile)
+      bits.push(
+        `<a href="${c.TEL}${esc(String(cp.mobile).replace(/\D/g, ""))}">${esc(cp.mobile)}</a>`,
+      );
+    if (cp.email)
+      bits.push(`<a href="${c.MAIL}${esc(cp.email)}">${esc(cp.email)}</a>`);
+    const marks = c.PLATFORMS.filter((p) => cp[p.key])
+      .map(
+        (p) =>
+          `<a href="${esc(cp[p.key])}"><img src="${new URL(p.icon, location.href)}" alt=""></a>`,
+      )
+      .join("");
     return `<footer class="cp">${bits.join(esc(c.SEP))}${marks}</footer>`;
   };
-  const people = () => people.rows || (people.rows = fetch(`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.CP.TAB)}`).then((r) => r.text()).then((csv) => new Promise((res) => Papa.parse(csv, { header: true, skipEmptyLines: true, complete: (x) => res(x.data.filter((r) => r.name)) }))).catch(() => []));
+  const people = () =>
+    people.rows ||
+    (people.rows = fetch(
+      `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.CP.TAB)}&_t=${Date.now()}`,
+    )
+      .then((r) => r.text())
+      .then((csv) => {
+        if (!csv.trim() || csv.trim().startsWith("<")) throw 0;
+        return new Promise((res) =>
+          Papa.parse(csv, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (x) => {
+              const rows = x.data
+                .map((raw) =>
+                  Object.fromEntries(
+                    Object.entries(raw).map(([k, v]) => [
+                      k
+                        .replace(/^\ufeff/, "")
+                        .trim()
+                        .toLowerCase(),
+                      String(v ?? "").trim(),
+                    ]),
+                  ),
+                )
+                .filter((r) => r.name);
+              if (!rows.length) throw 0;
+              res(rows);
+            },
+          }),
+        );
+      })
+      .catch(() => {
+        people.rows = null;
+        return [];
+      }));
 
   const sheet = (rows, title, layout, cp) => {
     const bulk = B(),
@@ -164,7 +210,10 @@
     if (kind === "print") {
       const w = window.open("", B().WINDOW);
       if (!w) return alert(B().POPUP);
-      w.document.write(doc(title, html) + `<script>const i=document.querySelector("img"),go=()=>print();i?i.complete?go():(i.onload=i.onerror=go):go()<\/script>`);
+      w.document.write(
+        doc(title, html) +
+          `<script>const i=document.querySelector("img"),go=()=>print();i?i.complete?go():(i.onload=i.onerror=go):go()<\/script>`,
+      );
       return w.document.close();
     }
     await loadDeps();
@@ -215,18 +264,44 @@
   };
 
   const ask = async () => {
-    const bulk = B(), rows = await people();
+    const bulk = B(),
+      rows = await people();
     return new Promise((done) => {
-      const d = document.body.append(Object.assign(document.createElement("dialog"), { className: "bulk-modal" })) || document.body.lastChild;
-      const radios = (n, arr, def) => arr.map(([id, lbl]) => `<label><input type="radio" name="${n}" value="${id}"${id === def ? " checked" : ""}> ${esc(lbl)}</label>`).join("");
-      const opts = [`<option value="">${esc(CONFIG.CP.EMPTY)}</option>`, ...rows.map((r, i) => `<option value="${i + 1}"${i + 1 === CONFIG.CP.DEFAULT ? " selected" : ""}>${esc(r.name)} - ${esc(CONFIG.CP.ROW)}${i + 1}</option>`)].join("");
+      const d =
+        document.body.append(
+          Object.assign(document.createElement("dialog"), {
+            className: "bulk-modal",
+          }),
+        ) || document.body.lastChild;
+      const radios = (n, arr, def) =>
+        arr
+          .map(
+            ([id, lbl]) =>
+              `<label><input type="radio" name="${n}" value="${id}"${id === def ? " checked" : ""}> ${esc(lbl)}</label>`,
+          )
+          .join("");
+      const opts = [
+        `<option value="">${esc(CONFIG.CP.EMPTY)}</option>`,
+        ...rows.map(
+          (r, i) =>
+            `<option value="${i + 1}"${i + 1 === CONFIG.CP.DEFAULT ? " selected" : ""}>${esc(r.name)} - ${esc(CONFIG.CP.ROW)}${i + 1}</option>`,
+        ),
+      ].join("");
       d.innerHTML = `<form><input name="title" value="${esc(bulk.TITLE)}"><p>${esc(bulk.PRINT_AS)}</p>${radios("as", bulk.AS, bulk.AS_DEFAULT)}<p>${esc(bulk.FORMAT)}</p>${radios("layout", bulk.LAYOUTS, bulk.LAYOUT_DEFAULT)}<menu><select name="cp">${opts}</select><button type="submit">${esc(bulk.EXECUTE)}</button></menu></form>`;
       d.showModal();
-      const close = (v) => { d.remove(); done(v); };
+      const close = (v) => {
+        d.remove();
+        done(v);
+      };
       d.querySelector("form").onsubmit = (e) => {
         e.preventDefault();
         const f = new FormData(e.target);
-        close({ title: String(f.get("title") || "").trim() || bulk.TITLE, as: f.get("as"), layout: f.get("layout"), cp: f.get("cp") ? rows[+f.get("cp") - 1] : null });
+        close({
+          title: String(f.get("title") || "").trim() || bulk.TITLE,
+          as: f.get("as"),
+          layout: f.get("layout"),
+          cp: f.get("cp") ? rows[+f.get("cp") - 1] : null,
+        });
       };
       d.addEventListener("cancel", () => close(null));
       d.addEventListener("click", (e) => e.target === d && close(null));
@@ -236,7 +311,16 @@
   const run = async () => {
     const pick = await ask();
     if (pick)
-      await save(pick.title, sheet((window.ACT && ACT.visible) || [], pick.title, pick.layout, pick.cp), pick.as).catch(() => alert(B().POPUP));
+      await save(
+        pick.title,
+        sheet(
+          (window.ACT && ACT.visible) || [],
+          pick.title,
+          pick.layout,
+          pick.cp,
+        ),
+        pick.as,
+      ).catch(() => alert(B().POPUP));
   };
   const bind = () =>
     document.getElementById(B().BTN_ID)?.addEventListener("click", run);

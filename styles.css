@@ -118,7 +118,10 @@ button {
   color: #fff;
   overflow: hidden;
 }
-.mark img { width: 32px; height: auto; }
+.mark img {
+  width: 32px;
+  height: auto;
+}
 .icon-btn {
   width: 44px;
   height: 44px;
@@ -448,6 +451,7 @@ main {
 }
 
 .card-foot {
+  margin: 0px;
   display: flex;
   justify-content: space-between;
   border-top: 1px solid var(--border);
@@ -457,6 +461,12 @@ main {
 }
 .card-foot b {
   color: var(--brand-strong);
+}
+.card-port {
+  margin: -6px 0 0;
+  font-size: 0.75rem;
+  /* color: var(--text-soft); */
+  color: var(--muted);
 }
 
 .k {
@@ -605,4 +615,6 @@ body > dialog > form > input {
   margin: 12px 0 0;
   padding: 0;
 }
-.bulk-modal select { min-height: 36px; }
+.bulk-modal select {
+  min-height: 36px;
+}

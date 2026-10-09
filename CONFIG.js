@@ -51,6 +51,7 @@ const CONFIG = {
     eta: ["eta", "arrival", "arrive", "eta date"],
     cfsCutOff: ["cfs cut off", "cfs cutoff", "cfs_cutoff", "cfs"],
     vgmHours: ["vgm", "vgm hours", "vgm cut off", "vgm cutoff"],
+    port: ["port"],
   },
 
   DEFAULTS: {
@@ -174,7 +175,7 @@ const CONFIG = {
       ["single", "Single column"],
       ["compact", "Compact"],
     ],
-    AS_DEFAULT: "pdf",
+    AS_DEFAULT: "print",
     LAYOUT_DEFAULT: "single",
     TITLE: "LCL import consol schedules",
     TITLE_PROMPT: "Schedule title",

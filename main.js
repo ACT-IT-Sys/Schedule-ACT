@@ -25,12 +25,17 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
 
-  const pin = '<svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+  const pin =
+    '<svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
 
   function monthLabel(monthIndex) {
     const m = Number(monthIndex);
     const pad = (n) => String(n).padStart(2, "0");
-    const tok = { MM: pad(m), MMM: CONFIG.MONTH_SHORT[m], MMMM: CONFIG.MONTH_LABELS[m] };
+    const tok = {
+      MM: pad(m),
+      MMM: CONFIG.MONTH_SHORT[m],
+      MMMM: CONFIG.MONTH_LABELS[m],
+    };
     return tok[CONFIG.MONTH_DISPLAY] || CONFIG.MONTH_SHORT[m];
   }
 
@@ -148,8 +153,20 @@
     $("dataSourceTag").textContent = "Data: Live sheets";
     $("dataSourceTag").className = "source is-live";
     const all = CONFIG.DEFAULTS.CATEGORY_FILTER;
-    const cats = [all, ...new Set(AppState.rawRows.map((r) => r[AppState.groupBy]).filter((v) => v && v !== CONFIG.EMPTY_TOKEN))].sort((a, b) => (a === all ? -1 : b === all ? 1 : a.localeCompare(b)));
-    $("categoryPillContainer").innerHTML = cats.map((cat) => `<button type="button" class="pill" data-cat="${esc(cat)}" aria-pressed="${AppState.selectedCategory === cat}">${esc(cat)}</button>`).join("");
+    const cats = [
+      all,
+      ...new Set(
+        AppState.rawRows
+          .map((r) => r[AppState.groupBy])
+          .filter((v) => v && v !== CONFIG.EMPTY_TOKEN),
+      ),
+    ].sort((a, b) => (a === all ? -1 : b === all ? 1 : a.localeCompare(b)));
+    $("categoryPillContainer").innerHTML = cats
+      .map(
+        (cat) =>
+          `<button type="button" class="pill" data-cat="${esc(cat)}" aria-pressed="${AppState.selectedCategory === cat}">${esc(cat)}</button>`,
+      )
+      .join("");
 
     $("cards").innerHTML = data.length
       ? data
@@ -167,6 +184,11 @@
                     <div class="end"><span class="k">${esc(CONFIG.LABELS.ARRIVAL)}</span><span class="v date arrive">${esc(formatDate(item.eta))}</span></div>
                 </div>
                 <p class="card-foot">${esc(CONFIG.LABELS.VGM_BEFORE)} <b>${esc(item.vgmHours)}</b> ${esc(CONFIG.LABELS.VGM_HOURS)} <b>${esc(formatDate(item.cfsCutOff))}</b> ${esc(CONFIG.LABELS.CFS_AFTER)}</p>
+                ${
+                  item.port
+                    ? `<p class="card-port"><span style="font-weight: bold; color: var(--brand-strong);">PORT - </span>${esc(item.port).toUpperCase()}</p>`
+                    : ""
+                }
             </article>`;
           })
           .join("")
@@ -187,7 +209,9 @@
   function init() {
     $("appTitle").textContent = CONFIG.LABELS.APP_TITLE;
     Object.entries(CONFIG.MONTH_LABELS).forEach(([v]) =>
-      $("monthPicker").add(new Option(monthLabel(v), v, false, +v === AppState.selectedMonth)),
+      $("monthPicker").add(
+        new Option(monthLabel(v), v, false, +v === AppState.selectedMonth),
+      ),
     );
     CONFIG.GROUP_OPTIONS.forEach((o) =>
       $("groupBySelect").add(new Option(o.label, o.value)),
@@ -233,7 +257,12 @@
     });
     $("sortDurationBtn").addEventListener("click", () => {
       const cycle = CONFIG.SORT_CYCLE;
-      const next = cycle[(cycle.findIndex((item) => item.id === AppState.sortDurationOrder) + 1) % cycle.length];
+      const next =
+        cycle[
+          (cycle.findIndex((item) => item.id === AppState.sortDurationOrder) +
+            1) %
+            cycle.length
+        ];
       AppState.sortDurationOrder = next.id;
       $("sortDurationLabel").textContent = next.label;
       renderUI();
@@ -250,7 +279,10 @@
       applyTheme(AppState.theme === "dark" ? "light" : "dark");
     });
 
-    applyTheme(document.documentElement.getAttribute("data-theme") || CONFIG.THEME.default);
+    applyTheme(
+      document.documentElement.getAttribute("data-theme") ||
+        CONFIG.THEME.default,
+    );
     loadMonthData();
   }
 
@@ -260,8 +292,13 @@
     const btn = $("themeToggle");
     const dark = AppState.theme === "dark";
     btn.setAttribute("aria-pressed", String(dark));
-    btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
-    try { localStorage.setItem(CONFIG.THEME.storageKey, AppState.theme); } catch (e) {}
+    btn.setAttribute(
+      "aria-label",
+      dark ? "Switch to light theme" : "Switch to dark theme",
+    );
+    try {
+      localStorage.setItem(CONFIG.THEME.storageKey, AppState.theme);
+    } catch (e) {}
   }
   window.addEventListener("DOMContentLoaded", init);
 })();
