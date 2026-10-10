@@ -62,7 +62,7 @@
       )
       .join("");
     const port = list.find((r) => r.port)?.port;
-    return `<section><header class="route"><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2></span>${port ? `<span style="${paint}">${esc(port.toUpperCase())}</span>` : ""}</header><table>${tr(
+    return `<section><header class="route"><h2 style="${paint}">📍 ${esc([origin, dest].join(bulk.JOIN))}</h2>${port ? `<span style="${paint}">${esc(port.toUpperCase())}</span>` : ""}</header><table>${tr(
       "th",
       bulk.ORDER.map((x) => esc(x.label)),
       ` style="${paint}"`,
@@ -226,7 +226,10 @@
       ) || document.body.lastChild;
     frame.srcdoc = doc(title, html);
     await new Promise((res) => (frame.onload = res));
-    const el = frame.contentDocument.getElementById("sheet-root");
+    const docu = frame.contentDocument;
+    if (docu.fonts?.ready) await docu.fonts.ready;
+    const el = docu.getElementById("sheet-root");
+    frame.style.height = el.scrollHeight + 24 + "px";
 
     if (kind === "pdf")
       return await exportPDF(el, title).then(() => frame.remove());
