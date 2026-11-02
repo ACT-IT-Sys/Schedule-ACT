@@ -125,7 +125,7 @@ const CP_CONFIG = {
       label: "Import glass dark",
       html: "cardprint/import-dark/design.html",
       css: "cardprint/import-dark/design.css",
-      bg: "",
+      bg: "bg/AIO.webp",
       theme: "dark",
     },
     {
@@ -133,6 +133,7 @@ const CP_CONFIG = {
       label: "Import",
       html: "cardprint/import-a/design.html",
       css: "cardprint/import-a/design.css",
+      bg: "bg/AIO.webp",
     },
   ],
 
