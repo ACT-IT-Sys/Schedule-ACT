@@ -109,8 +109,11 @@
   color: var(--cg-brand-strong);
 }
 .cp-glass .cg-logo {
+  background: #fff;
+  padding: 5px;
+  border-radius: 50%;
   /* height: calc(26 * var(--cp-u)); */
-  height: calc(65 * var(--cp-u));
+  height: calc(70 * var(--cp-u));
   width: auto;
   object-fit: contain;
 }
@@ -203,12 +206,13 @@
   left: 0;
   right: 0;
   top: 50%;
-  border-top: calc(2 * var(--cp-u)) dashed var(--cg-track);
+  /* border-top: calc(2 * var(--cp-u)) dashed var(--cg-track); */
+  border-top: calc(2 * var(--cp-u)) dashed #fff;
 }
 .cp-glass .cg-dot {
   position: absolute;
   left: 0;
-  top: 50%;
+  top: 53%;
   width: calc(7 * var(--cp-u));
   height: calc(7 * var(--cp-u));
   border-radius: 50%;
@@ -218,7 +222,7 @@
 .cp-glass .cg-head {
   position: absolute;
   right: calc(2 * var(--cp-u));
-  top: 50%;
+  top: 53%;
   width: calc(9 * var(--cp-u));
   height: calc(9 * var(--cp-u));
   border-top: calc(2 * var(--cp-u)) solid var(--cg-soft);

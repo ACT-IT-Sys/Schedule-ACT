@@ -292,14 +292,15 @@ const CONFIG = {
     RESET_BG: "Reset background",
     OPEN: "Print card",
     CLOSE: "Close",
-    // bg: "" means no default image (the design paints its own gradient). Omit bg to use BG above.
+    // bg: "",
+    // means no default image (the design paints its own gradient). Omit bg to use BG above.
     DESIGNS: [
       {
         id: "import-light",
         label: "Import glass",
         html: "cardprint/import-light/design.html",
         css: "cardprint/import-light/design.css",
-        bg: "",
+        bg: "cardprint/bg/AIO.webp",
       },
       {
         // Same files as import-light; `theme` selects the token set in design.css.
