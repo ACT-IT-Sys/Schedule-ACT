@@ -1,23 +1,18 @@
 /**
  * Card print. Click the card title block, choose ratio / orientation / export, then save.
- * Canvas, formats and defaults: cp.config.js (load it before this file).
- * Designs, fonts and card text: CONFIG.CARDPRINT and CONFIG.LABELS.
+ * All cardprint settings live in cp.config.js (load it before this file).
  *
  * @format
  */
 (function () {
-  const C = () => CONFIG.CARDPRINT;
+  const C = () => CP_CONFIG;
   const B = () => CONFIG.BULK;
   const K = () => CP_CONFIG;
 
-  // Dialog metrics, shared by the injected CSS and the preview fit.
   const UI = { MARGIN: 16, PAD: 12, GAP: 10 };
-
-  // Added to every design, in the preview and in the export document.
   const BASE_CSS =
     "[hidden]{display:none!important}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
 
-  // Folder of this script (cardprint/), captured while the script runs.
   const BASE = document.currentScript
     ? new URL(".", document.currentScript.src).href
     : location.href;
@@ -58,7 +53,7 @@
   const loadFonts = (d = document) =>
     Promise.all(fontSpecs().map((spec) => d.fonts.load(spec))).catch(() => {});
 
-  /* ---------- choices: ratio / orientation / format ---------- */
+  /* ---------- choices ---------- */
   const formats = () => K().FORMATS.filter((f) => !K().HIDDEN.includes(f.id));
   const pick = (list, ...ids) =>
     ids.map((id) => list.find((x) => x.id === id)).find(Boolean) || list[0];
@@ -100,7 +95,6 @@
     };
   };
 
-  // Shrinks --cp-fit until the content stays inside the canvas (layout is linear in the unit).
   const fitContent = (root) => {
     const plate = root.querySelector("[data-plate]") || root;
     const { MAX_PASSES, SAFETY } = K().FIT;
@@ -116,7 +110,6 @@
     }
   };
 
-  // Designs read these: --cp-wn / --cp-hn (unitless canvas px), --cp-fit, and the data attributes.
   const sizeRoot = (root) => {
     const c = dims();
     root.style.setProperty("--cp-wn", c.w);
@@ -164,11 +157,13 @@
     return row[key] || "";
   };
 
-  // Own background of a design: its `bg` (empty = none), else the shared BG.
+  // Priority: temporary upload > per-design non-empty bg > global bg > none
   const plateUrl = (design) => {
     if (state.bg) return state.bg;
-    const own = "bg" in design ? design.bg : C().BG;
-    return own ? new URL(own, new URL(design.css, location.href)).href : "";
+    const own =
+      design && "bg" in design && design.bg !== "" ? design.bg : C().bg;
+    if (!own) return "";
+    return new URL(own, BASE).href;
   };
 
   const fill = (root, row, design) => {
@@ -201,7 +196,7 @@
     }
   };
 
-  /* ---------- export ---------- */
+  /* ---------- export helpers ---------- */
   const loadImage = (src) =>
     new Promise((res) => {
       const img = new Image();
@@ -211,7 +206,6 @@
       img.src = src;
     });
 
-  // Pre-renders backdrop-filter (blur + tone) into a picture: html2canvas cannot draw it live.
   const bakeEffects = async (d) => {
     const view = d.defaultView;
     const filterOf = (cs) => cs.backdropFilter || cs.webkitBackdropFilter;
@@ -260,7 +254,6 @@
     }
   };
 
-  // html2canvas ignores background-size: cover, so bake the crop for the plate size.
   const coverCrop = async (url, w, h, scale) => {
     const img = await loadImage(url);
     if (!img) return url;
@@ -306,7 +299,6 @@
   const doc = (name, html, css, size, run = "") =>
     `<!doctype html><meta charset="utf-8"><title>${esc(name)}</title><style>${fontCss()}@page{size:${size.w}px ${size.h}px;margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0;width:${size.w}px;height:${size.h}px;overflow:hidden}${BASE_CSS}${css}</style><body>${html}${run}`;
 
-  // Renders the card in an off-screen frame of the exact canvas size.
   const mount = async (name, html, css) => {
     const c = dims();
     const frame = Object.assign(document.createElement("iframe"), {
@@ -346,71 +338,79 @@
 
     if (f.kind === "print") {
       const { frame, d } = await mount(name, html, css);
-      const baked = d.querySelector("[data-print]").outerHTML;
-      frame.remove();
-      const w = window.open("", B().WINDOW);
-      if (!w) return alert(B().POPUP);
-      w.document.write(doc(name, baked, css, c, readyScript()));
-      return w.document.close();
+      try {
+        const baked = d.querySelector("[data-print]").outerHTML;
+        frame.remove();
+        const w = window.open("", B().WINDOW);
+        if (!w) return alert(B().POPUP);
+        w.document.write(doc(name, baked, css, c, readyScript()));
+        return w.document.close();
+      } finally {
+        if (frame.parentNode) frame.remove();
+      }
     }
 
     await loadDeps(f.kind);
     const { frame, d } = await mount(name, html, css);
-    const el = d.querySelector("[data-print]");
-    const plate = d.querySelector("[data-plate]");
-    const bg = plate && urlOf(plate.style.getPropertyValue("--cp-bg"));
-    if (bg) {
-      const r = plate.getBoundingClientRect();
-      const crop = await coverCrop(
-        bg,
-        Math.round(r.width),
-        Math.round(r.height),
+    try {
+      const el = d.querySelector("[data-print]");
+      const plate = d.querySelector("[data-plate]");
+      const bg = plate && urlOf(plate.style.getPropertyValue("--cp-bg"));
+      if (bg) {
+        const r = plate.getBoundingClientRect();
+        const crop = await coverCrop(
+          bg,
+          Math.round(r.width),
+          Math.round(r.height),
+          scale,
+        );
+        plate.style.setProperty("--cp-bg", `url("${crop}")`);
+        plate.style.backgroundSize = "100% 100%";
+        await settle(d);
+      }
+      const canvas = await html2canvas(el, {
         scale,
-      );
-      plate.style.setProperty("--cp-bg", `url("${crop}")`);
-      plate.style.backgroundSize = "100% 100%";
-      await settle(d);
-    }
-    const canvas = await html2canvas(el, {
-      scale,
-      useCORS: true,
-      backgroundColor: K().EXPORT_BG,
-      width: c.w,
-      height: c.h,
-      windowWidth: c.w,
-      windowHeight: c.h,
-    });
-    frame.remove();
-
-    if (f.kind === "pdf") {
-      const mm = (px) => (px * 25.4) / K().PDF_DPI;
-      const pdf = new window.jspdf.jsPDF({
-        orientation: c.w > c.h ? "l" : "p",
-        unit: "mm",
-        format: [mm(c.w), mm(c.h)],
+        useCORS: true,
+        backgroundColor: K().EXPORT_BG,
+        width: c.w,
+        height: c.h,
+        windowWidth: c.w,
+        windowHeight: c.h,
       });
-      pdf.addImage(
-        canvas.toDataURL("image/jpeg", f.quality),
-        "JPEG",
-        0,
-        0,
-        mm(c.w),
-        mm(c.h),
-      );
-      return pdf.save(`${name}.pdf`);
+      frame.remove();
+
+      if (f.kind === "pdf") {
+        const mm = (px) => (px * 25.4) / K().PDF_DPI;
+        const pdf = new window.jspdf.jsPDF({
+          orientation: c.w > c.h ? "l" : "p",
+          unit: "mm",
+          format: [mm(c.w), mm(c.h)],
+        });
+        pdf.addImage(
+          canvas.toDataURL("image/jpeg", f.quality),
+          "JPEG",
+          0,
+          0,
+          mm(c.w),
+          mm(c.h),
+        );
+        return pdf.save(`${name}.pdf`);
+      }
+      Object.assign(document.createElement("a"), {
+        href: canvas.toDataURL(f.mime, f.quality),
+        download: `${name}.${f.ext}`,
+      }).click();
+    } finally {
+      if (frame.parentNode) frame.remove();
     }
-    Object.assign(document.createElement("a"), {
-      href: canvas.toDataURL(f.mime, f.quality),
-      download: `${name}.${f.ext}`,
-    }).click();
   };
 
-  /* ---------- background upload ---------- */
+  /* ---------- background ---------- */
   const dropBg = () => {
-    if (state.bg) URL.revokeObjectURL(state.bg);
+    if (state.bg && state.bg.startsWith("blob:")) URL.revokeObjectURL(state.bg);
     state.bg = "";
   };
-  // Downscales large photos; falls back to the original file if it cannot be decoded.
+
   const shrink = async (file) => {
     try {
       const { MAX_SIDE, QUALITY } = K().UPLOAD;
@@ -447,7 +447,10 @@
 .cardprint [data-title]{flex:1 1 auto;min-width:0;padding:0 12px;cursor:text}
 .cardprint .pick-bg{display:inline-flex;align-items:center}
 .cardprint [data-act=save]{margin-left:auto;background:#047857;border-color:#047857;color:#fff;font-weight:600}
-.cardprint select:disabled{opacity:.45;cursor:default}`;
+.cardprint select:disabled{opacity:.45;cursor:default}
+.bg-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin:8px 0}
+.bg-picker button{aspect-ratio:1;padding:0;overflow:hidden;border-radius:8px}
+.bg-picker img{width:100%;height:100%;object-fit:cover}`;
   document.head.append(style);
 
   const open = (row) => {
@@ -463,7 +466,6 @@
     state.format = pick(formats(), prev.format, K().DEFAULTS.format).id;
 
     const cfg = C(),
-      cp = K(),
       designs = cfg.DESIGNS,
       multi = designs.length > 1;
     const dialog = Object.assign(document.createElement("dialog"), {
@@ -482,7 +484,15 @@
     dialog.innerHTML = `<form method="dialog">
 <header>${multi ? nav("prev", cfg.PREV, "‹") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "›") + nav("dice", cfg.DICE, "🎲") : ""}${nav("close", cfg.CLOSE, "×")}</header>
 <div class="stage" data-stage></div>
-<footer><label class="pick-bg" title="${esc(cfg.BG_LABEL)}">🖼️<input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}"></label>${nav("reset", cfg.RESET_BG, "↺", " hidden")}${choice("ratio", cp.LABELS.RATIO, cp.RATIOS)}${choice("orientation", cp.LABELS.ORIENTATION, cp.ORIENTATIONS)}${formats().length > 1 ? choice("format", cp.LABELS.FORMAT, formats()) : ""}<button type="button" data-act="save">${esc(B().EXECUTE)}</button></footer>
+<footer>
+  <button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>
+  <input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}">
+  ${nav("reset", cfg.RESET_BG, "↺", " hidden")}
+  ${choice("ratio", cfg.LABELS.RATIO, cfg.RATIOS)}
+  ${choice("orientation", cfg.LABELS.ORIENTATION, cfg.ORIENTATIONS)}
+  ${formats().length > 1 ? choice("format", cfg.LABELS.FORMAT, formats()) : ""}
+  <button type="button" data-act="save">${esc(B().EXECUTE)}</button>
+</footer>
 </form>`;
     document.body.append(dialog);
 
@@ -495,7 +505,6 @@
       $('[data-pick="orientation"]').disabled = isSquare();
     };
 
-    // Scales the finished canvas down to fit the dialog (preview only).
     const fit = () => {
       const root = stage.querySelector("[data-print]");
       if (!root) return;
@@ -534,21 +543,55 @@
 
     const paint = async () => {
       const run = ++painting;
-      const loaded = await loadDesign();
-      if (run !== painting) return;
-      css = loaded.css;
-      stage.innerHTML = `<style>${BASE_CSS}${css}</style>${loaded.html}`;
-      const root = stage.querySelector("[data-print]");
-      if (loaded.design.theme) root.dataset.theme = loaded.design.theme;
-      fill(stage, state.row, loaded.design);
-      $('[data-act="reset"]').hidden = !state.bg;
-      await loadFonts();
-      if (run === painting) relayout();
+      try {
+        const loaded = await loadDesign();
+        if (run !== painting) return;
+        css = loaded.css;
+        stage.innerHTML = `<style>${BASE_CSS}${css}</style>${loaded.html}`;
+        const root = stage.querySelector("[data-print]");
+        if (loaded.design.theme) root.dataset.theme = loaded.design.theme;
+        fill(stage, state.row, loaded.design);
+        $('[data-act="reset"]').hidden = !state.bg;
+        await loadFonts();
+        if (run === painting) relayout();
+      } catch (e) {
+        if (run === painting) {
+          stage.innerHTML = `<div style="padding: 20px; color: red;">Failed to load design template.</div>`;
+        }
+      }
     };
 
     const step = (n) => {
       state.index = (state.index + n + designs.length) % designs.length;
       paint();
+    };
+
+    const showBgPicker = () => {
+      const picker = document.createElement("div");
+      picker.className = "bg-picker";
+      const items = (cfg.BACKGROUNDS || [])
+        .map(
+          (b) =>
+            `<button type="button" data-file="${esc(b.file)}" title="${esc(b.label)}"><img src="${esc(new URL(b.file, BASE).href)}" alt="${esc(b.label)}"></button>`,
+        )
+        .join("");
+      picker.innerHTML =
+        items +
+        `<button type="button" data-act="upload" title="Upload temporary">⬆️</button>`;
+      stage.insertAdjacentElement("beforebegin", picker);
+      picker.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        if (btn.dataset.file) {
+          dropBg();
+          state.bg = new URL(btn.dataset.file, BASE).href;
+          picker.remove();
+          paint();
+        } else if (btn.dataset.act === "upload") {
+          $("[data-bg]").click();
+          picker.remove();
+        }
+      });
     };
 
     dialog.addEventListener("click", (event) => {
@@ -561,7 +604,8 @@
       } else if (act === "reset") {
         dropBg();
         paint();
-      } else if (act === "save")
+      } else if (act === "bg-pick") showBgPicker();
+      else if (act === "save")
         save(stage.querySelector("[data-print]"), css).catch(() =>
           alert(B().POPUP),
         );

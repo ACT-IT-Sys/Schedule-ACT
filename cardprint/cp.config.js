@@ -1,7 +1,6 @@
 /**
- * Card print — canvas, ratio and export settings.
+ * Card print — canvas, ratio, export, designs and background settings.
  * Load after CONFIG.js and before cardprint/index.js.
- * Designs, fonts and card text live in CONFIG.CARDPRINT.
  *
  * @format
  */
@@ -72,4 +71,71 @@ const CP_CONFIG = {
   BAKE_BLUR: 8,
 
   LABELS: { RATIO: "Ratio", ORIENTATION: "Orientation", FORMAT: "Export" },
+
+  // Moved from CONFIG.CARDPRINT
+  ADDRESS: ["Jl. Perak Timur No. 248", "Tanjung Perak, Surabaya 60165"],
+  SITE: "https://actglobal-freight.com",
+  TITLE: "LCL IMPORT",
+  bg: "", // global fallback; empty = no image (design paints its own)
+  FIT_PAD: 16,
+  DATE_PARTS: ["YYYY", "YY", "MMMM", "MMM", "MM", "DD", "D"],
+  FONTS: [
+    {
+      DIR: "font",
+      FAMILY: "Inter",
+      FORMAT: "woff2",
+      FILES: [
+        { weight: 400, file: "Inter-Regular.woff2" },
+        { weight: 500, file: "Inter-Medium.woff2" },
+        { weight: 600, file: "Inter-SemiBold.woff2" },
+        { weight: 700, file: "Inter-Bold.woff2" },
+        { weight: 800, file: "Inter-ExtraBold.woff2" },
+      ],
+    },
+    {
+      DIR: "font",
+      FAMILY: "JetBrains Mono",
+      FORMAT: "woff2",
+      FILES: [
+        { weight: 500, file: "JetBrainsMono-Medium.woff2" },
+        { weight: 700, file: "JetBrainsMono-Bold.woff2" },
+      ],
+    },
+  ],
+  PREV: "Previous design",
+  NEXT: "Next design",
+  DICE: "Random design",
+  BG_LABEL: "Background",
+  RESET_BG: "Reset background",
+  OPEN: "Print card",
+  CLOSE: "Close",
+  DESIGNS: [
+    {
+      id: "import-light",
+      label: "Import glass",
+      html: "cardprint/import-light/design.html",
+      css: "cardprint/import-light/design.css",
+      bg: "bg/AIO.webp",
+    },
+    {
+      id: "import-dark",
+      label: "Import glass dark",
+      html: "cardprint/import-dark/design.html",
+      css: "cardprint/import-dark/design.css",
+      bg: "",
+      theme: "dark",
+    },
+    {
+      id: "import-a",
+      label: "Import",
+      html: "cardprint/import-a/design.html",
+      css: "cardprint/import-a/design.css",
+    },
+  ],
+
+  // Catalogue of selectable location backgrounds (relative to cardprint/).
+  BACKGROUNDS: [
+    { id: "aio", label: "AIO", file: "bg/AIO.webp" },
+    { id: "surabaya", label: "Surabaya", file: "bg/surabaya.webp" },
+  ],
 };
