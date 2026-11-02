@@ -70,6 +70,9 @@ const CP_CONFIG = {
   // Blur radius (px) used when baking a backdrop filter that does not state one.
   BAKE_BLUR: 8,
 
+  // Raster engine for card export (snapdom preferred for glass fidelity).
+  RASTER: "https://unpkg.com/@zumer/snapdom@latest/dist/snapdom.js",
+
   LABELS: { RATIO: "Ratio", ORIENTATION: "Orientation", FORMAT: "Export" },
 
   // Moved from CONFIG.CARDPRINT

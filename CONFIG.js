@@ -171,8 +171,7 @@ const CONFIG = {
     SINGLE_IMAGE: 1,
     PAGE_CAP: 3,
     PAGE_PX: 1200,
-    RASTER:
-      "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+    RASTER: "https://unpkg.com/@zumer/snapdom@latest/dist/snapdom.js",
     PDF: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
     AS: [
       ["pdf", "Interactive PDF"],

@@ -153,7 +153,7 @@
 
   const loadDeps = async () => {
     const deps = [];
-    if (!window.html2canvas) deps.push(B().RASTER);
+    if (!window.snapdom) deps.push(B().RASTER);
     if (!window.jspdf) deps.push(B().PDF);
     for (const src of deps)
       await new Promise((res, rej) =>
@@ -168,8 +168,9 @@
   };
 
   const exportPDF = async (el, title) => {
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true }),
-      imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const result = await window.snapdom(el, { scale: 2 });
+    const canvas = await result.toCanvas();
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
     const pdf = new window.jspdf.jsPDF("p", "mm", "a4"),
       wMm = 210,
       hMm = 297,
@@ -234,8 +235,9 @@
     if (kind === "pdf")
       return await exportPDF(el, title).then(() => frame.remove());
 
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true }),
-      p = B().PAGE_PX * 2,
+    const result = await window.snapdom(el, { scale: 2 });
+    const canvas = await result.toCanvas();
+    const p = B().PAGE_PX * 2,
       cuts =
         !B().SINGLE_IMAGE || Math.ceil(canvas.height / p) > B().PAGE_CAP
           ? Math.ceil(canvas.height / p)

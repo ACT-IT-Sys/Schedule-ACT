@@ -10,10 +10,14 @@
 
   --cg-ink: #0f172a;
   --cg-soft: #334155;
-  --cg-muted: #64748b;
-  --cg-brand: #047857;
+  /* --cg-muted: #64748b; */
+  --cg-muted: #cacaca;
+  /* --cg-brand: #047857;
   --cg-brand-strong: #065f46;
-  --cg-arrive: #0f766e;
+  --cg-arrive: #0f766e; */
+  --cg-brand: #69d2ff;
+  --cg-brand-strong: #69d2ff;
+  --cg-arrive: #69d2ff;
   --cg-amber: #b45309;
   --cg-amber-edge: #f6d58a;
   --cg-amber-soft: #fffbeb;
@@ -39,7 +43,8 @@
     min(
         var(--cp-wn) * var(--cg-card-w) / var(--cg-ref-w),
         var(--cp-hn) * var(--cg-card-h) / var(--cg-ref-h)
-      ) * var(--cp-fit, 1) * 1px
+      ) *
+      var(--cp-fit, 1) * 1px
   );
 
   width: calc(var(--cp-wn) * 1px);
@@ -74,8 +79,10 @@
   border: 1px solid var(--cg-edge);
   border-radius: calc(22 * var(--cp-u));
   background-color: var(--cg-tint);
-  -webkit-backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u))) saturate(var(--cg-saturate));
-  backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u))) saturate(var(--cg-saturate));
+  -webkit-backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate));
+  backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate));
   box-shadow: 0 calc(12 * var(--cp-u)) calc(32 * var(--cp-u)) var(--cg-shadow);
 }
 .cp-glass .cg-card::before {
