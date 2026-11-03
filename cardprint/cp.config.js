@@ -73,7 +73,13 @@ const CP_CONFIG = {
   // Raster engine for card export (snapdom preferred for glass fidelity).
   RASTER: "https://unpkg.com/@zumer/snapdom@latest/dist/snapdom.js",
 
-  LABELS: { RATIO: "Ratio", ORIENTATION: "Orientation", FORMAT: "Export" },
+  LABELS: {
+    RATIO: "Ratio",
+    ORIENTATION: "Orientation",
+    FORMAT: "Export",
+    FIT_HEIGHT: "Fit height",
+    FIT_WIDTH: "Fit width",
+  },
 
   // Moved from CONFIG.CARDPRINT
   ADDRESS: ["Jl. Perak Timur No. 248", "Tanjung Perak, Surabaya 60165"],

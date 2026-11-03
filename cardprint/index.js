@@ -32,6 +32,9 @@
     ratio: "",
     orientation: "",
     format: "",
+    fit: "height",
+    offsetX: 0,
+    offsetY: 0,
   };
 
   /* ---------- fonts ---------- */
@@ -166,6 +169,16 @@
     return new URL(own, BASE).href;
   };
 
+  // Apply fit + pan to a plate element (preview or export bake).
+  const applyBgFit = (plate) => {
+    if (!plate) return;
+    const url = plate.style.getPropertyValue("--cp-bg");
+    if (!url || url === "none") return;
+    plate.style.backgroundSize = state.fit === "height" ? "auto 100%" : "100% auto";
+    plate.style.backgroundPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
+    plate.style.backgroundRepeat = "no-repeat";
+  };
+
   const fill = (root, row, design) => {
     root.querySelectorAll("[data-field]").forEach((node) => {
       node.textContent = field(row, node.dataset.field);
@@ -193,6 +206,7 @@
       const url = plateUrl(design);
       if (url) plate.style.setProperty("--cp-bg", `url("${url}")`);
       else plate.style.removeProperty("--cp-bg");
+      applyBgFit(plate);
     }
   };
 
@@ -396,6 +410,8 @@
   <button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>
   <input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}">
   ${nav("reset", cfg.RESET_BG, "↺", " hidden")}
+  <button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button>
+  <button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>
   ${choice("ratio", cfg.LABELS.RATIO, cfg.RATIOS)}
   ${choice("orientation", cfg.LABELS.ORIENTATION, cfg.ORIENTATIONS)}
   ${formats().length > 1 ? choice("format", cfg.LABELS.FORMAT, formats()) : ""}
@@ -522,6 +538,50 @@
       remember();
       if (key !== "format") relayout();
     });
+
+    // Background fit + pan (does not capture events on content)
+    const setFit = (fit) => {
+      state.fit = fit;
+      state.offsetX = 0;
+      state.offsetY = 0;
+      const plate = stage.querySelector("[data-plate]");
+      applyBgFit(plate);
+      dialog.querySelectorAll("[data-act^=fit-]").forEach((b) => {
+        b.setAttribute("aria-pressed", String(b.dataset.act === "fit-" + fit));
+      });
+    };
+    dialog.addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "fit-height") setFit("height");
+      else if (act === "fit-width") setFit("width");
+    });
+
+    let panning = false, lastX = 0, lastY = 0;
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("[data-field],[data-date],[data-label],button,input,select")) return;
+      const plate = stage.querySelector("[data-plate]");
+      if (!plate || !plate.style.getPropertyValue("--cp-bg")) return;
+      panning = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      stage.setPointerCapture?.(e.pointerId);
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!panning) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      const plate = stage.querySelector("[data-plate]");
+      if (!plate) return;
+      const rect = plate.getBoundingClientRect();
+      if (state.fit === "height") state.offsetX += (dx / rect.width) * 100;
+      else state.offsetY += (dy / rect.height) * 100;
+      applyBgFit(plate);
+    });
+    const endPan = () => { panning = false; };
+    stage.addEventListener("pointerup", endPan);
+    stage.addEventListener("pointercancel", endPan);
 
     $("[data-title]").addEventListener("input", (event) => {
       state.title = event.target.value;
