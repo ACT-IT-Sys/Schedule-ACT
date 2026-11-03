@@ -56,6 +56,7 @@
   padding: calc(8 * var(--cp-u));
   text-align: left;
   background-image: var(--cp-bg, var(--cg-gradient));
+  /* background-image: var(--cp-bg); */
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
