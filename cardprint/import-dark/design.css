@@ -1,3 +1,7 @@
+cp-from {
+  min-width: fit-content !important;
+}
+
 .cp-glass {
   /* Tokens: change the look here only. Lengths are design px at u = 1 (card 380 wide). */
   --cg-card-w: 0.88; /* card width, share of the canvas width */

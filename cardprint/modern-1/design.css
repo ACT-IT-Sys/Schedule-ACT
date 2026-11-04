@@ -1,0 +1,229 @@
+body > dialog > form > div > article > div > header > span > strong {
+  display: none;
+}
+ul li {
+  border-radius: 20px;
+  padding: 5px;
+  background: #ffffffde;
+}
+
+.cp-import {
+  /* Tokens: change the look here only. Lengths are design px at u = 1. */
+  --cp-navy: #0b2a6f;
+  --cp-ink: #10233f;
+  --cp-yellow: #f5c518;
+  --cp-paper: #eaf3fa;
+  --cp-min-font: 8px;
+
+  /* Reference canvas per layout (design px). The unit is canvas size / reference size. */
+  --cp-tall-w: 794;
+  --cp-tall-h: 1100;
+  --cp-wide-w: 1200;
+  --cp-wide-h: 820;
+  --cp-ref-w: var(--cp-tall-w);
+  --cp-ref-h: var(--cp-tall-h);
+  --cp-u: calc(
+    min(var(--cp-wn) / var(--cp-ref-w), var(--cp-hn) / var(--cp-ref-h)) *
+      var(--cp-fit, 1) * 1px
+  );
+
+  --cp-pad-x: calc(48 * var(--cp-u));
+  --cp-pad-top: calc(36 * var(--cp-u));
+  --cp-pad-bottom: calc(24 * var(--cp-u));
+  --cp-gap: calc(22 * var(--cp-u));
+  --cp-row-gap: calc(16 * var(--cp-u));
+  --cp-icon: calc(60 * var(--cp-u));
+  --cp-label-w: calc(230 * var(--cp-u));
+  --cp-title-size: calc(44 * var(--cp-u));
+  --cp-brand-size: calc(20 * var(--cp-u));
+  --cp-logo: calc(48 * var(--cp-u));
+  --cp-place-size: calc(84 * var(--cp-u));
+  --cp-to-size: calc(36 * var(--cp-u));
+  --cp-label-size: max(var(--cp-min-font), calc(22 * var(--cp-u)));
+  --cp-value-size: max(var(--cp-min-font), calc(24 * var(--cp-u)));
+  --cp-foot-size: max(var(--cp-min-font), calc(13 * var(--cp-u)));
+
+  width: calc(var(--cp-wn) * 1px);
+  height: calc(var(--cp-hn) * 1px);
+  overflow: hidden;
+  color: var(--cp-ink);
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--cp-paper);
+}
+.cp-import[data-layout="wide"] {
+  --cp-ref-w: var(--cp-wide-w);
+  --cp-ref-h: var(--cp-wide-h);
+  --cp-row-gap: calc(14 * var(--cp-u));
+}
+
+/* Areas: stacked on tall canvases, two columns on wide ones */
+.cp-import .plate {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas: "top" "route" "info" "foot";
+  row-gap: var(--cp-gap);
+  padding: var(--cp-pad-top) var(--cp-pad-x) var(--cp-pad-bottom);
+  text-align: left;
+  background-image: var(--cp-bg, none);
+  background-color: var(--cp-paper);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.cp-import[data-layout="wide"] .plate {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "top top" "route info" "foot foot";
+  column-gap: calc(40 * var(--cp-u));
+}
+.cp-import[data-layout="wide"] .route,
+.cp-import[data-layout="wide"] .info {
+  align-self: center;
+}
+
+/* Title left with accent bar, logo right */
+.cp-import header {
+  grid-area: top;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(16 * var(--cp-u));
+  color: var(--cp-navy);
+}
+.cp-import h1 {
+  margin: 0;
+  padding-bottom: calc(10 * var(--cp-u));
+  width: fit-content;
+  font-size: var(--cp-title-size);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cp-ink);
+  border-bottom: calc(5 * var(--cp-u)) solid var(--cp-yellow);
+}
+.cp-import .logo {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--cp-u));
+  font-size: var(--cp-brand-size);
+}
+.cp-import .logo img {
+  width: var(--cp-logo);
+  height: var(--cp-logo);
+  object-fit: contain;
+}
+
+/* Origin and destination, prominent */
+.cp-import .route {
+  grid-area: route;
+  display: grid;
+  padding: calc(18 * var(--cp-u)) calc(22 * var(--cp-u));
+  border: calc(3 * var(--cp-u)) solid var(--cp-yellow);
+  border-radius: calc(28 * var(--cp-u));
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(calc(14 * var(--cp-u)));
+  backdrop-filter: blur(calc(14 * var(--cp-u)));
+}
+.cp-import .place {
+  font-size: var(--cp-place-size);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  /* color: var(--cp-navy); */
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+.cp-import .to {
+  margin: calc(12 * var(--cp-u)) 0;
+  font-size: var(--cp-to-size);
+  font-weight: 800;
+  text-transform: uppercase;
+  /* color: var(--cp-ink); */
+  color: #fff;
+}
+
+/* Detail rows: icon, label, value on tall canvases; label above value on wide ones */
+.cp-import .info {
+  grid-area: info;
+  display: grid;
+  gap: var(--cp-row-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cp-import .info li {
+  display: grid;
+  grid-template-columns: var(--cp-icon) var(--cp-label-w) minmax(0, 1fr);
+  grid-template-areas: "icon label value";
+  align-items: center;
+}
+.cp-import[data-layout="wide"] .info li {
+  grid-template-columns: var(--cp-icon) minmax(0, 1fr);
+  grid-template-areas: "icon label" "icon value";
+}
+.cp-import .icon {
+  grid-area: icon;
+  width: var(--cp-icon);
+  height: var(--cp-icon);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--cp-yellow);
+  color: var(--cp-navy);
+}
+.cp-import .icon svg {
+  width: 52%;
+  height: 52%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cp-import .label {
+  grid-area: label;
+  padding-left: calc(20 * var(--cp-u));
+  font-size: var(--cp-label-size);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cp-import .value {
+  grid-area: value;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(10 * var(--cp-u));
+  min-width: 0;
+  font-size: var(--cp-value-size);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.cp-import .value::before {
+  content: ":";
+  margin-right: calc(14 * var(--cp-u));
+  font-weight: 800;
+}
+.cp-import[data-layout="wide"] .value::before {
+  display: none;
+}
+.cp-import[data-layout="wide"] .label {
+  font-size: max(var(--cp-min-font), calc(17 * var(--cp-u)));
+}
+.cp-import[data-layout="wide"] .value {
+  padding-left: calc(20 * var(--cp-u));
+}
+
+/* Contact line, bottom */
+.cp-import footer {
+  grid-area: foot;
+  align-self: end;
+  /* display: grid; */
+  display: none;
+  gap: 2px;
+  color: var(--cp-navy);
+  font-size: var(--cp-foot-size);
+  font-weight: 700;
+  text-align: center;
+}

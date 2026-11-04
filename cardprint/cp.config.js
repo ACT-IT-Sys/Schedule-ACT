@@ -125,6 +125,7 @@ const CP_CONFIG = {
       html: "cardprint/import-light/design.html",
       css: "cardprint/import-light/design.css",
       bg: "bg/AIO.webp",
+      theme: "light",
     },
     {
       id: "import-dark",
@@ -141,11 +142,18 @@ const CP_CONFIG = {
       css: "cardprint/import-a/design.css",
       bg: "bg/AIO.webp",
     },
+    {
+      id: "modern-1",
+      label: "Modern 1",
+      html: "cardprint/modern-1/design.html",
+      css: "cardprint/modern-1/design.css",
+      bg: "bg/AIO.webp",
+    },
   ],
 
   // Catalogue of selectable location backgrounds (relative to cardprint/).
   BACKGROUNDS: [
     { id: "aio", label: "AIO", file: "bg/AIO.webp" },
-    { id: "surabaya", label: "Surabaya", file: "bg/surabaya.webp" },
+    { id: "shanghai", label: "Shanghai", file: "bg/shanghai.webp" },
   ],
 };
