@@ -173,13 +173,18 @@
   const applyBgFit = (plate) => {
     if (!plate) return;
     const raw = plate.style.getPropertyValue("--cp-bg");
-    if (!raw || raw === "none") return;
+    if (!raw || raw === "none") {
+      plate.style.backgroundImage = "none";
+      return;
+    }
     const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1] || raw;
-    plate.style.backgroundImage = `url("${url}")`;
-    plate.style.backgroundSize =
-      state.fit === "height" ? "auto 100%" : "100% auto";
+    const img = `url("${url}")`;
+    plate.style.setProperty("--cp-bg", img);
+    plate.style.backgroundImage = img;
+    plate.style.backgroundSize = state.fit === "height" ? "auto 100%" : "100% auto";
     plate.style.backgroundPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.backgroundRepeat = "no-repeat";
+    plate.style.backgroundColor = "transparent";
   };
 
   const waitBg = (plate) => {
@@ -492,11 +497,17 @@
 
     const loadDesign = async () => {
       const design = designs[state.index];
-      const [html, designCss] = await Promise.all([
+      const oCssUrl = design.oCss === true
+        ? design.css.replace(/[^/]+$/, "o.css")
+        : design.oCss || "";
+      const [html, designCss, overrideCss] = await Promise.all([
         fetch(design.html).then((r) => r.text()),
         fetch(design.css).then((r) => r.text()),
+        oCssUrl
+          ? fetch(oCssUrl).then((r) => (r.ok ? r.text() : "")).catch(() => "")
+          : Promise.resolve(""),
       ]);
-      return { design, html, css: designCss };
+      return { design, html, css: designCss + (overrideCss ? "\n" + overrideCss : "") };
     };
 
     const paint = async () => {

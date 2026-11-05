@@ -141,6 +141,7 @@ const CP_CONFIG = {
       css: "cardprint/import-light/design.css",
       bg: "bg/AIO.webp",
       theme: "light",
+      oCss: true, // loads cardprint/import-light/o.css after design.css
     },
     {
       id: "import-dark",
@@ -149,6 +150,7 @@ const CP_CONFIG = {
       css: "cardprint/import-dark/design.css",
       bg: "bg/AIO.webp",
       theme: "dark",
+      oCss: true, // loads cardprint/import-dark/o.css after design.css
     },
     {
       id: "import-a",
@@ -164,6 +166,7 @@ const CP_CONFIG = {
       html: "cardprint/modern-1/design.html",
       css: "cardprint/modern-1/design.css",
       bg: "bg/AIO.webp",
+      oCss: true, // loads cardprint/modern-1/o.css after design.css
     },
   ],
 

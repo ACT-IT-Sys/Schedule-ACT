@@ -1,0 +1,25 @@
+.cp-glass .cg-track::before {
+  border-top: calc(2 * var(--cp-u)) dashed #ffffff;
+}
+
+.cp-glass .cg-vessel-voyage-group {
+  display: flex;
+  flex: 2;
+  flex-direction: column;
+  align-items: flex-end;
+}
+body
+  > dialog
+  > form
+  > div
+  > article
+  > div
+  > section
+  > div.cg-ident
+  > div.cg-from
+  > span.cg-k {
+  text-align: start;
+}
+.cp-glass .cg-k {
+  text-align: end;
+}

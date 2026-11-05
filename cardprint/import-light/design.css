@@ -1,4 +1,6 @@
-/** @format */
+cp-from {
+  min-width: fit-content !important;
+}
 
 .cp-glass {
   /* Tokens: change the look here only. Lengths are design px at u = 1 (card 380 wide). */
@@ -12,10 +14,10 @@
 
   --cg-ink: #0f172a;
   --cg-soft: #334155;
-  --cg-muted: #64748b;
-  --cg-brand: #047857;
-  --cg-brand-strong: #065f46;
-  --cg-arrive: #0f766e;
+  --cg-muted: #4a4a4a;
+  --cg-brand: #002fbb;
+  --cg-brand-strong: #002fbb;
+  --cg-arrive: #002fbb;
   --cg-amber: #b45309;
   --cg-amber-edge: #f6d58a;
   --cg-amber-soft: #fffbeb;
@@ -25,6 +27,10 @@
   --cg-shine: rgba(255, 255, 255, 0.6);
   --cg-rule: rgba(15, 23, 42, 0.12);
   --cg-shadow: rgba(15, 23, 42, 0.2);
+  --cg-logo-h: 26;
+  --cg-logo-pad: 0;
+  --cg-logo-bg: transparent;
+  --cg-logo-radius: 0;
   --cg-mono: "JetBrains Mono", ui-monospace, monospace;
   --cg-gradient:
     radial-gradient(circle at 12% 0%, #a7f3d0 0%, rgba(167, 243, 208, 0) 55%),
@@ -32,7 +38,6 @@
     radial-gradient(circle at 25% 100%, #fde68a 0%, rgba(253, 230, 138, 0) 55%),
     linear-gradient(160deg, #ecfdf5, #e0f2fe);
 
-  /* One unit: card width / 380, capped by height, then shrunk by the fit pass */
   --cp-u: calc(
     min(
         var(--cp-wn) * var(--cg-card-w) / var(--cg-ref-w),
@@ -48,7 +53,6 @@
   font-family: Inter, system-ui, sans-serif;
 }
 
-/* Background: uploaded image (--cp-bg) or the default gradient */
 .cp-glass .plate {
   display: grid;
   width: 100%;
@@ -56,13 +60,11 @@
   padding: calc(8 * var(--cp-u));
   text-align: left;
   background-image: var(--cp-bg, var(--cg-gradient));
-  /* background-image: var(--cp-bg); */
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
 }
 
-/* Glass card */
 .cp-glass .cg-card {
   position: relative;
   z-index: 0;
@@ -73,12 +75,11 @@
   padding: calc(20 * var(--cp-u));
   border: 1px solid var(--cg-edge);
   border-radius: calc(22 * var(--cp-u));
-  /* background-color: var(--cg-tint); */
-  background-color: rgba(255, 255, 255, 0.9);
-  /* -webkit-backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
-    saturate(var(--cg-saturate)); */
-  /* backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
-    saturate(var(--cg-saturate)); */
+  background-color: var(--cg-tint);
+  -webkit-backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate));
+  backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate));
   box-shadow: 0 calc(12 * var(--cp-u)) calc(32 * var(--cp-u)) var(--cg-shadow);
 }
 .cp-glass .cg-card::before {
@@ -97,7 +98,6 @@
   );
 }
 
-/* Title left, logo right */
 .cp-glass .cg-top {
   display: flex;
   align-items: center;
@@ -111,23 +111,32 @@
   color: var(--cg-brand-strong);
 }
 .cp-glass .cg-logo {
-  background: #fff;
-  padding: 0px 5px;
-  border-radius: 25px 25px;
-  /* height: calc(26 * var(--cp-u)); */
-  height: calc(70 * var(--cp-u));
+  height: calc((var(--cg-logo-h) + 2 * var(--cg-logo-pad)) * var(--cp-u));
   width: auto;
+  padding: calc(var(--cg-logo-pad) * var(--cp-u));
+  border-radius: calc(var(--cg-logo-radius) * var(--cp-u));
+  background: var(--cg-logo-bg);
   object-fit: contain;
 }
 
-/* Identity row */
+/* Identity row set to Flexbox */
 .cp-glass .cg-ident {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
+  display: flex;
   gap: calc(10 * var(--cp-u));
+  align-items: flex-start;
 }
-.cp-glass .cg-from,
+.cp-glass .cg-from {
+  flex: 1.1;
+  min-width: 0;
+}
+.cp-glass .cg-vessel-voyage-group {
+  display: flex;
+  flex: 2;
+  gap: calc(10 * var(--cp-u));
+  min-width: 0;
+}
 .cp-glass .cg-kv {
+  flex: 1;
   min-width: 0;
 }
 .cp-glass .cg-from h2 {
@@ -135,7 +144,7 @@
   font-size: calc(24 * var(--cp-u));
   font-weight: 800;
   line-height: 1.1;
-  overflow-wrap: anywhere;
+  white-space: nowrap; /* Keeps origin name fully displayed on one line */
 }
 .cp-glass .cg-stem {
   display: flex;
@@ -169,7 +178,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Timeline: labels row, then dates and the dashed track */
 .cp-glass .cg-line {
   display: grid;
   grid-template-columns: max-content 1fr max-content;
@@ -208,13 +216,12 @@
   left: 0;
   right: 0;
   top: 50%;
-  /* border-top: calc(2 * var(--cp-u)) dashed var(--cg-track); */
-  border-top: calc(2 * var(--cp-u)) dashed #525252;
+  border-top: calc(2 * var(--cp-u)) dashed var(--cg-track);
 }
 .cp-glass .cg-dot {
   position: absolute;
   left: 0;
-  top: 53%;
+  top: 50%;
   width: calc(7 * var(--cp-u));
   height: calc(7 * var(--cp-u));
   border-radius: 50%;
@@ -224,7 +231,7 @@
 .cp-glass .cg-head {
   position: absolute;
   right: calc(2 * var(--cp-u));
-  top: 53%;
+  top: 50%;
   width: calc(9 * var(--cp-u));
   height: calc(9 * var(--cp-u));
   border-top: calc(2 * var(--cp-u)) solid var(--cg-soft);
@@ -245,7 +252,6 @@
   white-space: nowrap;
 }
 
-/* VGM / CFS line and optional port */
 .cp-glass .cg-foot {
   display: flex;
   align-items: baseline;
@@ -273,4 +279,34 @@
 }
 .cp-glass .cg-port span {
   text-transform: uppercase;
+}
+
+.cp-glass[data-theme="dark"] {
+  --cg-blur: 24;
+  --cg-saturate: 140%;
+
+  --cg-ink: #f1f5f4;
+  --cg-soft: #d5e2dc;
+  --cg-muted: #93a89f;
+  --cg-brand: #34d399;
+  --cg-brand-strong: #6ee7b7;
+  --cg-arrive: #5eead4;
+  --cg-amber: #fbbf24;
+  --cg-amber-edge: rgba(251, 191, 36, 0.45);
+  --cg-amber-soft: #2b331c;
+  --cg-track: #2f5649;
+  --cg-tint: rgba(16, 33, 27, 0.55);
+  --cg-edge: rgba(255, 255, 255, 0.18);
+  --cg-shine: rgba(255, 255, 255, 0.16);
+  --cg-rule: rgba(255, 255, 255, 0.14);
+  --cg-shadow: rgba(0, 0, 0, 0.45);
+  --cg-logo-h: 26;
+  --cg-logo-pad: 4;
+  --cg-logo-bg: rgba(255, 255, 255, 0.92);
+  --cg-logo-radius: 8;
+  --cg-gradient:
+    radial-gradient(circle at 12% 0%, #0f766e 0%, rgba(15, 118, 110, 0) 55%),
+    radial-gradient(circle at 100% 35%, #1e3a8a 0%, rgba(30, 58, 138, 0) 55%),
+    radial-gradient(circle at 25% 100%, #065f46 0%, rgba(6, 95, 70, 0) 55%),
+    linear-gradient(160deg, #07110e, #0b1d2a);
 }

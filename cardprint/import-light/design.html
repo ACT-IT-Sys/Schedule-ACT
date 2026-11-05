@@ -3,24 +3,34 @@
     <section class="cg-card">
       <header class="cg-top">
         <strong class="cg-brand" data-field="title"></strong>
-        <img class="cg-logo" src="img/ACT.webp" alt="">
+        <img class="cg-logo" src="img/ACT.webp" alt="" />
       </header>
 
       <div class="cg-ident">
-        <div class="cg-from">
+        <div class="cg-from" style="order: 1">
+          <span class="cg-k" data-label="ORIGIN">Origin</span>
           <h2 data-field="origin"></h2>
           <p class="cg-stem">
-            <svg class="cg-pin" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <svg class="cg-pin" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+              />
+            </svg>
             <span data-field="destination"></span>
           </p>
         </div>
-        <div class="cg-kv">
-          <span class="cg-k" data-label="VESSEL"></span>
-          <span class="cg-v" data-field="vessel"></span>
-        </div>
-        <div class="cg-kv">
-          <span class="cg-k" data-label="VOYAGE"></span>
-          <span class="cg-v" data-field="voyage"></span>
+
+        <!-- Grouped Vessel & Voyage Flex Container -->
+        <div class="cg-vessel-voyage-group" style="order: 2">
+          <div class="cg-kv">
+            <span class="cg-k" data-label="VESSEL"></span>
+            <span class="cg-v" data-field="vessel"></span>
+          </div>
+          <div class="cg-kv">
+            <span class="cg-k" data-label="VOYAGE"></span>
+            <span class="cg-v" data-field="voyage"></span>
+          </div>
         </div>
       </div>
 

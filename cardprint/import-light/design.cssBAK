@@ -1,0 +1,276 @@
+/** @format */
+
+.cp-glass {
+  /* Tokens: change the look here only. Lengths are design px at u = 1 (card 380 wide). */
+  --cg-card-w: 0.88; /* card width, share of the canvas width */
+  --cg-card-h: 0.8; /* card height cap, share of the canvas height */
+  --cg-ref-w: 380; /* card width at u = 1 */
+  --cg-ref-h: 255; /* card height at u = 1, with a two-line vessel and the port line */
+  --cg-min-font: 8px;
+  --cg-blur: 20;
+  --cg-saturate: 160%;
+
+  --cg-ink: #0f172a;
+  --cg-soft: #334155;
+  --cg-muted: #64748b;
+  --cg-brand: #047857;
+  --cg-brand-strong: #065f46;
+  --cg-arrive: #0f766e;
+  --cg-amber: #b45309;
+  --cg-amber-edge: #f6d58a;
+  --cg-amber-soft: #fffbeb;
+  --cg-track: #c3cfc7;
+  --cg-tint: rgba(255, 255, 255, 0.62);
+  --cg-edge: rgba(255, 255, 255, 0.8);
+  --cg-shine: rgba(255, 255, 255, 0.6);
+  --cg-rule: rgba(15, 23, 42, 0.12);
+  --cg-shadow: rgba(15, 23, 42, 0.2);
+  --cg-mono: "JetBrains Mono", ui-monospace, monospace;
+  --cg-gradient:
+    radial-gradient(circle at 12% 0%, #a7f3d0 0%, rgba(167, 243, 208, 0) 55%),
+    radial-gradient(circle at 100% 35%, #7dd3fc 0%, rgba(125, 211, 252, 0) 55%),
+    radial-gradient(circle at 25% 100%, #fde68a 0%, rgba(253, 230, 138, 0) 55%),
+    linear-gradient(160deg, #ecfdf5, #e0f2fe);
+
+  /* One unit: card width / 380, capped by height, then shrunk by the fit pass */
+  --cp-u: calc(
+    min(
+        var(--cp-wn) * var(--cg-card-w) / var(--cg-ref-w),
+        var(--cp-hn) * var(--cg-card-h) / var(--cg-ref-h)
+      ) *
+      var(--cp-fit, 1) * 1px
+  );
+
+  width: calc(var(--cp-wn) * 1px);
+  height: calc(var(--cp-hn) * 1px);
+  overflow: hidden;
+  color: var(--cg-ink);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Background: uploaded image (--cp-bg) or the default gradient */
+.cp-glass .plate {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: calc(8 * var(--cp-u));
+  text-align: left;
+  background-image: var(--cp-bg, var(--cg-gradient));
+  /* background-image: var(--cp-bg); */
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Glass card */
+.cp-glass .cg-card {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  gap: calc(14 * var(--cp-u));
+  width: calc(var(--cg-ref-w) * var(--cp-u));
+  margin: auto;
+  padding: calc(20 * var(--cp-u));
+  border: 1px solid var(--cg-edge);
+  border-radius: calc(22 * var(--cp-u));
+  /* background-color: var(--cg-tint); */
+  background-color: rgba(255, 255, 255, 0.9);
+  /* -webkit-backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate)); */
+  /* backdrop-filter: blur(calc(var(--cg-blur) * var(--cp-u)))
+    saturate(var(--cg-saturate)); */
+  box-shadow: 0 calc(12 * var(--cp-u)) calc(32 * var(--cp-u)) var(--cg-shadow);
+}
+.cp-glass .cg-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    var(--cg-shine) 0%,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0) 68%,
+    rgba(255, 255, 255, 0.28) 100%
+  );
+}
+
+/* Title left, logo right */
+.cp-glass .cg-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-glass .cg-brand {
+  font-size: max(var(--cg-min-font), calc(13 * var(--cp-u)));
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cg-brand-strong);
+}
+.cp-glass .cg-logo {
+  background: #fff;
+  padding: 0px 5px;
+  border-radius: 25px 25px;
+  /* height: calc(26 * var(--cp-u)); */
+  height: calc(70 * var(--cp-u));
+  width: auto;
+  object-fit: contain;
+}
+
+/* Identity row */
+.cp-glass .cg-ident {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: calc(10 * var(--cp-u));
+}
+.cp-glass .cg-from,
+.cp-glass .cg-kv {
+  min-width: 0;
+}
+.cp-glass .cg-from h2 {
+  margin: 0;
+  font-size: calc(24 * var(--cp-u));
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.cp-glass .cg-stem {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--cp-u));
+  margin: calc(5 * var(--cp-u)) 0 0;
+  color: var(--cg-soft);
+  font-size: calc(14 * var(--cp-u));
+  font-weight: 700;
+}
+.cp-glass .cg-pin {
+  flex-shrink: 0;
+  width: calc(15 * var(--cp-u));
+  height: calc(15 * var(--cp-u));
+  color: var(--cg-brand);
+}
+.cp-glass .cg-k {
+  display: block;
+  color: var(--cg-muted);
+  font-size: max(var(--cg-min-font), calc(10.5 * var(--cp-u)));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cp-glass .cg-v {
+  display: block;
+  margin-top: calc(3 * var(--cp-u));
+  font-size: calc(16.5 * var(--cp-u));
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Timeline: labels row, then dates and the dashed track */
+.cp-glass .cg-line {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  align-items: center;
+  column-gap: calc(12 * var(--cp-u));
+  row-gap: calc(3 * var(--cp-u));
+}
+.cp-glass .cg-line > .cg-k:nth-child(2) {
+  text-align: center;
+}
+.cp-glass .cg-right {
+  text-align: right;
+}
+.cp-glass .cg-date {
+  font-family: var(--cg-mono);
+  font-size: calc(15.5 * var(--cp-u));
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cp-glass .cg-depart {
+  color: var(--cg-brand);
+}
+.cp-glass .cg-arrive {
+  color: var(--cg-arrive);
+}
+.cp-glass .cg-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(24 * var(--cp-u));
+}
+.cp-glass .cg-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  /* border-top: calc(2 * var(--cp-u)) dashed var(--cg-track); */
+  border-top: calc(2 * var(--cp-u)) dashed #525252;
+}
+.cp-glass .cg-dot {
+  position: absolute;
+  left: 0;
+  top: 53%;
+  width: calc(7 * var(--cp-u));
+  height: calc(7 * var(--cp-u));
+  border-radius: 50%;
+  background: var(--cg-soft);
+  transform: translateY(-50%);
+}
+.cp-glass .cg-head {
+  position: absolute;
+  right: calc(2 * var(--cp-u));
+  top: 53%;
+  width: calc(9 * var(--cp-u));
+  height: calc(9 * var(--cp-u));
+  border-top: calc(2 * var(--cp-u)) solid var(--cg-soft);
+  border-right: calc(2 * var(--cp-u)) solid var(--cg-soft);
+  transform: translateY(-50%) rotate(45deg);
+}
+.cp-glass .cg-dur {
+  position: relative;
+  z-index: 1;
+  padding: calc(3 * var(--cp-u)) calc(10 * var(--cp-u));
+  border: calc(1.5 * var(--cp-u)) dashed var(--cg-amber-edge);
+  border-radius: 999px;
+  background: var(--cg-amber-soft);
+  color: var(--cg-amber);
+  font-family: var(--cg-mono);
+  font-size: max(var(--cg-min-font), calc(12.5 * var(--cp-u)));
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* VGM / CFS line and optional port */
+.cp-glass .cg-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(6 * var(--cp-u));
+  margin: 0;
+  padding-top: calc(10 * var(--cp-u));
+  border-top: 1px solid var(--cg-rule);
+  color: var(--cg-muted);
+  font-size: max(var(--cg-min-font), calc(12 * var(--cp-u)));
+}
+.cp-glass .cg-foot b {
+  color: var(--cg-brand-strong);
+  font-family: var(--cg-mono);
+  font-weight: 700;
+}
+.cp-glass .cg-port {
+  margin: calc(-6 * var(--cp-u)) 0 0;
+  color: var(--cg-muted);
+  font-size: max(var(--cg-min-font), calc(12 * var(--cp-u)));
+}
+.cp-glass .cg-port b {
+  color: var(--cg-brand-strong);
+  text-transform: uppercase;
+}
+.cp-glass .cg-port span {
+  text-transform: uppercase;
+}
