@@ -57,7 +57,7 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["print", "pdf"],
+  HIDDEN: ["pdf"],
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
