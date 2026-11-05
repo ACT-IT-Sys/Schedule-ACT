@@ -5,3 +5,11 @@ body > dialog > form > div > article > div > header > h1 {
   background: #ffffff6e;
   backdrop-filter: blur(10px);
 }
+
+.cp-import .route {
+  width: fit-content;
+}
+
+.cp-import .place {
+  overflow-wrap: normal;
+}
