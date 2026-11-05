@@ -172,11 +172,25 @@
   // Apply fit + pan to a plate element (preview or export bake).
   const applyBgFit = (plate) => {
     if (!plate) return;
-    const url = plate.style.getPropertyValue("--cp-bg");
-    if (!url || url === "none") return;
+    const raw = plate.style.getPropertyValue("--cp-bg");
+    if (!raw || raw === "none") return;
+    const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1] || raw;
+    plate.style.backgroundImage = `url("${url}")`;
     plate.style.backgroundSize = state.fit === "height" ? "auto 100%" : "100% auto";
     plate.style.backgroundPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.backgroundRepeat = "no-repeat";
+  };
+
+  const waitBg = (plate) => {
+    if (!plate) return Promise.resolve();
+    const raw = plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
+    const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1];
+    if (!url) return Promise.resolve();
+    return new Promise((res) => {
+      const img = new Image();
+      img.onload = img.onerror = () => res();
+      img.src = url;
+    });
   };
 
   const fill = (root, row, design) => {
@@ -189,8 +203,10 @@
       const part = node.dataset.part;
       node.textContent = (part && dateParts(src)[part]) || field(row, key);
     });
+    const labels = C().COLUMN_LABELS || {};
     root.querySelectorAll("[data-label]").forEach((node) => {
-      node.textContent = CONFIG.LABELS[node.dataset.label] ?? "";
+      const key = node.dataset.label;
+      node.textContent = labels[key] ?? CONFIG.LABELS[key] ?? key ?? "";
     });
     root.querySelectorAll("[data-hide-empty]").forEach((node) => {
       const probes = [node, ...node.querySelectorAll("[data-field]")];
@@ -198,6 +214,13 @@
         (n) => n.dataset.field && n.textContent.trim(),
       );
     });
+    const exclude = new Set(design?.exclude || []);
+    if (exclude.size) {
+      root.querySelectorAll("[data-field],[data-label]").forEach((node) => {
+        const key = node.dataset.field || node.dataset.label;
+        if (key && exclude.has(key)) node.hidden = true;
+      });
+    }
     root.querySelectorAll("img[src]").forEach((img) => {
       img.src = new URL(img.getAttribute("src"), location.href).href;
     });
@@ -289,7 +312,22 @@
       frame.remove();
       const w = window.open("", B().WINDOW);
       if (!w) return alert(B().POPUP);
-      w.document.write(doc(name, baked, css, c, readyScript()));
+      const printCss = `@page{margin:0}html,body{margin:0;width:auto;height:auto;overflow:visible}[data-print]{transform-origin:top left}`;
+      const printScript = `<script>
+        Promise.all([${JSON.stringify(fontSpecs())}.map(s=>document.fonts.load(s)),[...document.images].map(i=>i.complete?0:new Promise(r=>i.onload=i.onerror=r))].flat()).catch(()=>{}).then(()=>document.fonts.ready).then(()=>{
+          const el=document.querySelector("[data-print]");
+          if(el){
+            const pw=window.innerWidth||document.documentElement.clientWidth;
+            const ph=window.innerHeight||document.documentElement.clientHeight;
+            const s=Math.min(pw/${c.w},ph/${c.h});
+            el.style.transform="scale("+s+")";
+            document.body.style.width=(${c.w}*s)+"px";
+            document.body.style.height=(${c.h}*s)+"px";
+          }
+          setTimeout(()=>print(),150);
+        });
+      <\/script>`;
+      w.document.write(doc(name, baked, css + printCss, c, printScript));
       return w.document.close();
     }
 
@@ -329,7 +367,6 @@
 
   /* ---------- background ---------- */
   const dropBg = () => {
-    if (state.bg && state.bg.startsWith("blob:")) URL.revokeObjectURL(state.bg);
     state.bg = "";
   };
 
@@ -344,15 +381,14 @@
       });
       cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
       bmp.close?.();
-      return await new Promise((res, rej) =>
-        cv.toBlob(
-          (b) => (b ? res(URL.createObjectURL(b)) : rej()),
-          "image/jpeg",
-          QUALITY,
-        ),
-      );
+      return cv.toDataURL("image/jpeg", QUALITY);
     } catch (e) {
-      return URL.createObjectURL(file);
+      return new Promise((res) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = () => res("");
+        r.readAsDataURL(file);
+      });
     }
   };
 
@@ -388,7 +424,7 @@
     state.format = pick(formats(), prev.format, K().DEFAULTS.format).id;
 
     const cfg = C(),
-      designs = cfg.DESIGNS,
+      designs = (cfg.DESIGNS || []).filter((d) => d.enabled !== false),
       multi = designs.length > 1;
     const dialog = Object.assign(document.createElement("dialog"), {
       className: "cardprint",
@@ -475,6 +511,7 @@
       if (loaded.design.theme) root.dataset.theme = loaded.design.theme;
       fill(stage, state.row, loaded.design);
       $('[data-act="reset"]').hidden = !state.bg;
+      await waitBg(stage.querySelector("[data-plate]"));
       await loadFonts();
       if (run === painting) relayout();
     };

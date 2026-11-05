@@ -57,7 +57,7 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["pdf"],
+  HIDDEN: ["print", "pdf"],
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
@@ -79,6 +79,20 @@ const CP_CONFIG = {
     FORMAT: "Export",
     FIT_HEIGHT: "Fit height",
     FIT_WIDTH: "Fit width",
+  },
+
+  // Short display labels for card fields. Stable against sheet header renames.
+  // Fallback: CONFIG.LABELS[key] or the raw key.
+  COLUMN_LABELS: {
+    cfsCutOff: "CFS",
+    etd: "ETD",
+    eta: "ETA",
+    vessel: "Vessel",
+    voyage: "Voy",
+    port: "Port",
+    duration: "T/T",
+    origin: "From",
+    destination: "To",
   },
 
   // Moved from CONFIG.CARDPRINT
@@ -119,6 +133,7 @@ const CP_CONFIG = {
   OPEN: "Print card",
   CLOSE: "Close",
   DESIGNS: [
+    // enabled: false hides a design from the switcher. Omit or true = shown.
     {
       id: "import-light",
       label: "Import glass",
