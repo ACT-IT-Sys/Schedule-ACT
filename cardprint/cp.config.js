@@ -18,7 +18,7 @@ const CP_CONFIG = {
 
   // Ratios are written portrait (w < h). Landscape swaps them. 1:1 has no orientation.
   RATIOS: [
-    { id: "1:1", label: "1:1", w: 1, h: 1 },
+    // { id: "1:1", label: "1:1", w: 1, h: 1 },
     { id: "3:4", label: "3:4", w: 3, h: 4 },
     { id: "9:16", label: "9:16", w: 9, h: 16 },
   ],
@@ -57,7 +57,7 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["pdf"],
+  HIDDEN: ["print", "pdf"],
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
