@@ -176,14 +176,16 @@
     if (!raw || raw === "none") return;
     const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1] || raw;
     plate.style.backgroundImage = `url("${url}")`;
-    plate.style.backgroundSize = state.fit === "height" ? "auto 100%" : "100% auto";
+    plate.style.backgroundSize =
+      state.fit === "height" ? "auto 100%" : "100% auto";
     plate.style.backgroundPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.backgroundRepeat = "no-repeat";
   };
 
   const waitBg = (plate) => {
     if (!plate) return Promise.resolve();
-    const raw = plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
+    const raw =
+      plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
     const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1];
     if (!url) return Promise.resolve();
     return new Promise((res) => {
@@ -395,20 +397,20 @@
   /* ---------- dialog ---------- */
   const style = document.createElement("style");
   style.textContent = `${fontCss()}
-.cardprint{border:0;border-radius:16px;padding:${UI.PAD}px;width:min(100vw - ${UI.MARGIN}px,720px);max-height:calc(100vh - ${UI.MARGIN}px);overflow:hidden}
+.cardprint{border:0;border-radius:16px;padding:${UI.PAD}px;width:min(100vw - ${UI.MARGIN}px,720px);max-height:calc(100dvh - ${UI.MARGIN}px - env(safe-area-inset-bottom,0px));overflow:auto;display:flex;flex-direction:column}
 .cardprint::backdrop{background:rgba(15,23,42,.45)}
-.cardprint form{display:grid;grid-template-rows:auto 1fr auto;gap:${UI.GAP}px;max-height:calc(100vh - ${UI.MARGIN + UI.PAD * 2}px)}
-.cardprint form>header,.cardprint form>footer{display:flex;gap:8px;align-items:center}
-.cardprint form>footer{flex-wrap:wrap}
-.cardprint .stage{display:grid;justify-content:center;overflow:hidden}
+.cardprint form{display:grid;grid-template-rows:auto 1fr auto;gap:${UI.GAP}px;max-height:100%;min-height:0;overflow:hidden}
+.cardprint form>header,.cardprint form>footer{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.cardprint .stage{display:grid;justify-content:center;overflow:hidden;min-height:0;touch-action:none}
 .cardprint button,.cardprint select,.cardprint [data-title],.cardprint .pick-bg{font:inherit;min-height:36px;border:1px solid #d7e0da;border-radius:10px;background:#fff;color:inherit;padding:0 10px;cursor:pointer}
 .cardprint [data-title]{flex:1 1 auto;min-width:0;padding:0 12px;cursor:text}
 .cardprint .pick-bg{display:inline-flex;align-items:center}
 .cardprint [data-act=save]{margin-left:auto;background:#047857;border-color:#047857;color:#fff;font-weight:600}
 .cardprint select:disabled{opacity:.45;cursor:default}
-.bg-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin:8px 0}
-.bg-picker button{aspect-ratio:1;padding:0;overflow:hidden;border-radius:8px}
-.bg-picker img{width:100%;height:100%;object-fit:cover}`;
+.bg-picker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(15,23,42,.18);display:grid;grid-template-columns:repeat(3,72px);gap:8px;max-width:calc(100% - 24px)}
+.bg-picker button{aspect-ratio:1;padding:0;overflow:hidden;border-radius:8px;border:1px solid #e5e7eb}
+.bg-picker img{width:100%;height:100%;object-fit:cover;display:block}
+.cardprint form{position:relative}`;
   document.head.append(style);
 
   const open = (row) => {
@@ -440,14 +442,10 @@
         .join("")}</select>`;
 
     dialog.innerHTML = `<form method="dialog">
-<header>${multi ? nav("prev", cfg.PREV, "‹") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "›") + nav("dice", cfg.DICE, "🎲") : ""}${nav("close", cfg.CLOSE, "×")}</header>
+<header>${multi ? nav("prev", cfg.PREV, "‹") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "›") + nav("dice", cfg.DICE, "🎲") : ""}<button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>${nav("reset", cfg.RESET_BG, "↺", " hidden")}<button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button><button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>${nav("close", cfg.CLOSE, "❌")}</header>
 <div class="stage" data-stage></div>
 <footer>
-  <button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>
   <input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}">
-  ${nav("reset", cfg.RESET_BG, "↺", " hidden")}
-  <button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button>
-  <button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>
   ${choice("ratio", cfg.LABELS.RATIO, cfg.RATIOS)}
   ${choice("orientation", cfg.LABELS.ORIENTATION, cfg.ORIENTATIONS)}
   ${formats().length > 1 ? choice("format", cfg.LABELS.FORMAT, formats()) : ""}
@@ -472,13 +470,13 @@
       const pad = cfg.FIT_PAD;
       const chrome =
         $("form > header").offsetHeight + $("form > footer").offsetHeight;
+      const vh = window.visualViewport?.height || innerHeight;
       const availW = dialog.clientWidth - pad * 2;
-      const availH =
-        innerHeight - UI.MARGIN - UI.PAD * 2 - UI.GAP * 2 - chrome - pad;
+      const availH = vh - UI.MARGIN - UI.PAD * 2 - UI.GAP * 2 - chrome - pad;
       const scale = Math.min(
         1,
         availW / root.offsetWidth,
-        availH / root.offsetHeight,
+        Math.max(120, availH) / root.offsetHeight,
       );
       root.style.transformOrigin = "top center";
       root.style.transform = `scale(${scale})`;
@@ -522,6 +520,8 @@
     };
 
     const showBgPicker = () => {
+      const existing = dialog.querySelector(".bg-picker");
+      if (existing) return existing.remove();
       const picker = document.createElement("div");
       picker.className = "bg-picker";
       const items = (cfg.BACKGROUNDS || [])
@@ -533,7 +533,7 @@
       picker.innerHTML =
         items +
         `<button type="button" data-act="upload" title="Upload temporary">⬆️</button>`;
-      stage.insertAdjacentElement("beforebegin", picker);
+      stage.parentElement.append(picker);
       picker.addEventListener("click", async (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
@@ -593,16 +593,28 @@
       else if (act === "fit-width") setFit("width");
     });
 
-    let panning = false, lastX = 0, lastY = 0;
-    stage.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("[data-field],[data-date],[data-label],button,input,select")) return;
-      const plate = stage.querySelector("[data-plate]");
-      if (!plate || !plate.style.getPropertyValue("--cp-bg")) return;
-      panning = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      stage.setPointerCapture?.(e.pointerId);
-    });
+    let panning = false,
+      lastX = 0,
+      lastY = 0;
+    stage.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (
+          e.target.closest(
+            "[data-field],[data-date],[data-label],button,input,select",
+          )
+        )
+          return;
+        const plate = stage.querySelector("[data-plate]");
+        if (!plate || !plate.style.getPropertyValue("--cp-bg")) return;
+        panning = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        e.preventDefault();
+        stage.setPointerCapture?.(e.pointerId);
+      },
+      { passive: false },
+    );
     stage.addEventListener("pointermove", (e) => {
       if (!panning) return;
       const dx = e.clientX - lastX;
@@ -616,7 +628,9 @@
       else state.offsetY += (dy / rect.height) * 100;
       applyBgFit(plate);
     });
-    const endPan = () => { panning = false; };
+    const endPan = () => {
+      panning = false;
+    };
     stage.addEventListener("pointerup", endPan);
     stage.addEventListener("pointercancel", endPan);
 
@@ -641,8 +655,10 @@
 
     const onResize = () => fit();
     addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
     dialog.addEventListener("close", () => {
       removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
       dropBg();
       dialog.remove();
     });

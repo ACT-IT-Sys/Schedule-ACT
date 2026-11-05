@@ -3,7 +3,14 @@
  *
  * @format
  */
-
+/* CARD PRINT */
+.bg-picker {
+  box-shadow: 0 10px 50px rgba(15, 23, 42, 0.85) !important;
+  top: 27% !important;
+}
+body > dialog > form > header > button.pick-bg {
+  z-index: 21;
+}
 #groupBySelect {
   display: none !important;
 }

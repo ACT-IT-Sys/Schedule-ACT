@@ -57,7 +57,7 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["print", "pdf"],
+  HIDDEN: ["pdf"],
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
@@ -156,6 +156,7 @@ const CP_CONFIG = {
       html: "cardprint/import-a/design.html",
       css: "cardprint/import-a/design.css",
       bg: "bg/AIO.webp",
+      enabled: false,
     },
     {
       id: "modern-1",
