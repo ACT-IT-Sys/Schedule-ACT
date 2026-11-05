@@ -1,65 +1,44 @@
-<article class="cp-import" data-print>
+<article class="cp-glass" data-print>
   <div class="plate" data-plate>
-    <header>
-      <h1 data-field="title"></h1>
-      <span class="logo">
-        <img src="img/ACT.webp" alt="">
-        <strong>actglobal</strong>
-      </span>
-    </header>
+    <section class="cg-card">
+      <!-- Angled cream overlay background shape -->
+      <div class="cg-split-bg"></div>
 
-    <div class="route">
-      <span class="place" data-field="origin"></span>
-      <span class="to" data-label="TO"></span>
-      <span class="place" data-field="destination"></span>
-    </div>
+      <!-- Top/Left Section ($TITLE & Flex Vessel/Voyage Group) -->
+      <div class="cg-section-top">
+        <strong class="cg-brand cg-split-text" data-field="title"></strong>
 
-    <ul class="info">
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15l2 4h14l2-4z"/><path d="M6 15V9h12v6M12 4v5M9 12h6"/></svg></span>
-        <span class="label" data-label="VESSEL"></span>
-        <span class="value" data-field="vessel"></span>
-      </li>
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg></span>
-        <span class="label" data-label="VOYAGE"></span>
-        <span class="value" data-field="voyage"></span>
-      </li>
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17.5h2M14 17.5h2"/></svg></span>
-        <span class="label" data-label="CFS_AFTER"></span>
-        <span class="value" data-field="cfs"></span>
-      </li>
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
-        <span class="label" data-label="DEPART"></span>
-        <span class="value" data-field="etd"></span>
-      </li>
-      <li data-hide-empty>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-        <span class="label" data-label="ETA"></span>
-        <span class="value" data-field="duration"></span>
-      </li>
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <span class="label" data-label="ARRIVAL"></span>
-        <span class="value" data-field="eta"></span>
-      </li>
-      <li data-hide-empty>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M5 14a7 7 0 0 0 14 0"/></svg></span>
-        <span class="label" data-label="PORT"></span>
-        <span class="value" data-field="port"></span>
-      </li>
-      <li>
-        <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        <span class="label" data-label="VGM_BEFORE"></span>
-        <span class="value"><span data-field="vgmHours"></span><span data-label="VGM_HOURS"></span><span data-label="CFS_AFTER"></span></span>
-      </li>
-    </ul>
+        <div class="cg-vessel-voyage-group">
+          <div class="cg-kv">
+            <span class="cg-v cg-split-text" data-field="vessel"></span>
+          </div>
+          <span class="cg-tilde cg-split-text">~</span>
+          <div class="cg-kv">
+            <span class="cg-v cg-split-text" data-field="voyage"></span>
+          </div>
+        </div>
+      </div>
 
-    <footer>
-      <span data-field="address"></span>
-      <span data-field="site"></span>
-    </footer>
+      <!-- Center / Route Section (Origin to Destination with Split Inversion Effect) -->
+      <div class="cg-section-mid">
+        <h2 class="cg-split-text" data-field="origin"></h2>
+        <span class="cg-to-label cg-split-text">TO</span>
+        <p class="cg-stem">
+          <span class="cg-split-text" data-field="destination"></span>
+        </p>
+      </div>
+
+      <!-- Right Section (ETD & ETA) -->
+      <div class="cg-section-right">
+        <div class="cg-date-block">
+          <span class="cg-k" data-label="ETD"></span>
+          <span class="cg-date" data-field="etd"></span>
+        </div>
+        <div class="cg-date-block">
+          <span class="cg-k" data-label="ETA"></span>
+          <span class="cg-date" data-field="eta"></span>
+        </div>
+      </div>
+    </section>
   </div>
 </article>

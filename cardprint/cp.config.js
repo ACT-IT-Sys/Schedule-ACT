@@ -158,7 +158,8 @@ const CP_CONFIG = {
       html: "cardprint/import-a/design.html",
       css: "cardprint/import-a/design.css",
       bg: "bg/AIO.webp",
-      enabled: false,
+      // enabled: false,
+      oCss: true, // loads cardprint/import-a/o.css after design.css
     },
     {
       id: "modern-1",
