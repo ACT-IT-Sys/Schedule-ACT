@@ -17,6 +17,18 @@
     ERROR: "Background image could not be loaded. Please try again.",
   };
   const bgError = () => C().LABELS?.BG_ERROR || BG.ERROR;
+  // Save options. Real values live in CP_CONFIG.SHARE; these only cover a missing block.
+  const SHARE_FALLBACK = {
+    OPTIONS: [{ id: "download", label: "Download", enabled: true }],
+    READY_LABEL: "Save image",
+    PRERENDER_MS: 800,
+    REVOKE_MS: 60000,
+  };
+  const SH = () => ({ ...SHARE_FALLBACK, ...K().SHARE });
+  const shareOptions = () => {
+    const on = SH().OPTIONS.filter((o) => o.enabled !== false);
+    return on.length ? on : SHARE_FALLBACK.OPTIONS;
+  };
   const BASE_CSS =
     "[hidden]{display:none!important}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
 
@@ -322,20 +334,152 @@
       );
   };
 
-  const save = async (node, css) => {
-    const f = K().FORMATS.find((x) => x.id === state.format);
+  /* ---------- export ---------- */
+  const fmt = () => K().FORMATS.find((x) => x.id === state.format);
+  const opaque = (hex) => hex.slice(0, 7).toLowerCase();
+
+  const exportInfo = () => {
+    const f = fmt();
     const c = dims();
     const scale = f.scale || 1;
     const name = `${state.row.vessel || "card"}-${state.row.voyage || "schedule"}-${c.w * scale}x${c.h * scale}`;
+    return { f, c, scale, name };
+  };
+
+  // Swap the plate background for a baked data URL (see resolveBg).
+  const bakeBg = async (node) => {
     const plate = node.querySelector("[data-plate]");
     const src = plate && (urlOf(plateBg(plate)) || "");
-    if (src && !src.startsWith("data:")) {
-      try {
-        applyBgFit(plate, await resolveBg(src));
-      } catch (e) {
-        applyBgFit(plate, src);
-      }
+    if (!src || src.startsWith("data:")) return;
+    try {
+      applyBgFit(plate, await resolveBg(src));
+    } catch (e) {
+      applyBgFit(plate, src);
     }
+  };
+
+  const rasterize = async (html, css, { f, name, scale }) => {
+    await loadDeps(f.kind);
+    const wait = K().EXPORT_WAIT || {};
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    const capture = async () => {
+      const { frame, d } = await mount(name, html, css);
+      const el = d.querySelector("[data-print]");
+      const plate = d.querySelector("[data-plate]");
+      const bg = plate && urlOf(plateBg(plate));
+      if (bg) {
+        const probe = new Image();
+        probe.src = bg;
+        if (probe.decode) await probe.decode().catch(() => {});
+      }
+      await pause(wait.DECODE_MS || 0);
+      const result = await window.snapdom(el, {
+        scale,
+        backgroundColor: K().EXPORT_BG,
+      });
+      frame.remove();
+      return result;
+    };
+    const blank = async (res) => {
+      try {
+        const cv = await res.toCanvas();
+        const ctx = cv.getContext("2d");
+        const pts = [
+          [8, 8],
+          [cv.width - 8, 8],
+          [8, cv.height - 8],
+        ];
+        const bg = opaque(K().EXPORT_BG);
+        return pts.every(([x, y]) => {
+          const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+          const hex =
+            "#" +
+            [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+          return hex === bg;
+        });
+      } catch (e) {
+        return false;
+      }
+    };
+    let result = await capture();
+    for (let i = 0; i < (wait.RETRY || 0) && (await blank(result)); i++)
+      result = await capture();
+    return result;
+  };
+
+  // Raster result -> File in the format's own mime (JPEG is flattened: it has no alpha).
+  const toFile = async (result, { f, name }) => {
+    const src = await result.toCanvas();
+    let cv = src;
+    if (f.mime !== "image/png") {
+      cv = Object.assign(document.createElement("canvas"), {
+        width: src.width,
+        height: src.height,
+      });
+      const ctx = cv.getContext("2d");
+      ctx.fillStyle = opaque(K().EXPORT_BG);
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(src, 0, 0);
+    }
+    const blob = await new Promise((res) => cv.toBlob(res, f.mime, f.quality));
+    if (!blob) throw new Error("export failed");
+    return new File([blob], `${name}.${f.ext}`, { type: f.mime });
+  };
+
+  // Image file for the current card, with no delivery step (used by pre-render).
+  const renderFile = async (node, css) => {
+    const info = exportInfo();
+    await bakeBg(node);
+    return toFile(await rasterize(plateHtml(node), css, info), info);
+  };
+
+  /* ---------- delivery ---------- */
+  const saveBlob = (file) => {
+    const href = URL.createObjectURL(file);
+    Object.assign(document.createElement("a"), {
+      href,
+      download: file.name,
+    }).click();
+    setTimeout(() => URL.revokeObjectURL(href), SH().REVOKE_MS);
+  };
+
+  // Native share sheet when the browser can share files, plain download otherwise.
+  const shareFile = async (file) => {
+    if (!(navigator.share && navigator.canShare?.({ files: [file] })))
+      return saveBlob(file);
+    try {
+      await navigator.share({ files: [file] });
+    } catch (e) {
+      if (e.name !== "AbortError") saveBlob(file);
+    }
+  };
+
+  const closeMenu = (host) => host.querySelector(".share-menu")?.remove();
+  const popMenu = (host, html) => {
+    closeMenu(host);
+    const menu = Object.assign(document.createElement("div"), {
+      className: "share-menu",
+      innerHTML: html,
+    });
+    host.append(menu);
+    return menu;
+  };
+
+  // iOS only opens the share sheet from a fresh tap, so a finished render waits for one.
+  const offerShare = (file, host) =>
+    popMenu(
+      host,
+      `<button type="button" data-ready>${esc(SH().READY_LABEL)}</button>`,
+    ).addEventListener("click", () => {
+      closeMenu(host);
+      shareFile(file);
+    });
+
+  // mode: download | share | ready. Print and PDF keep their own delivery.
+  const save = async (node, css, mode, host) => {
+    const info = exportInfo();
+    const { f, c, name } = info;
+    await bakeBg(node);
     const html = plateHtml(node);
 
     if (f.kind === "print") {
@@ -363,45 +507,7 @@
       return w.document.close();
     }
 
-    await loadDeps(f.kind);
-    const wait = K().EXPORT_WAIT || {};
-    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-    const capture = async () => {
-      const { frame, d } = await mount(name, html, css);
-      const el = d.querySelector("[data-print]");
-      const plate = d.querySelector("[data-plate]");
-      const bg = plate && urlOf(plateBg(plate));
-      if (bg) {
-        const probe = new Image();
-        probe.src = bg;
-        if (probe.decode) await probe.decode().catch(() => {});
-      }
-      await pause(wait.DECODE_MS || 0);
-      const result = await window.snapdom(el, {
-        scale,
-        backgroundColor: K().EXPORT_BG,
-      });
-      frame.remove();
-      return result;
-    };
-    const blank = async (res) => {
-      try {
-        const cv = await res.toCanvas();
-        const ctx = cv.getContext("2d");
-        const pts = [[8, 8], [cv.width - 8, 8], [8, cv.height - 8]];
-        const bg = K().EXPORT_BG;
-        return pts.every(([x, y]) => {
-          const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
-          const hex = "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
-          return hex === bg;
-        });
-      } catch (e) {
-        return false;
-      }
-    };
-    let result = await capture();
-    for (let i = 0; i < (wait.RETRY || 0) && (await blank(result)); i++)
-      result = await capture();
+    const result = await rasterize(html, css, info);
 
     if (f.kind === "pdf") {
       const canvas = await result.toCanvas();
@@ -421,11 +527,8 @@
       );
       return pdf.save(`${name}.pdf`);
     }
-    const img = await result.toPng();
-    Object.assign(document.createElement("a"), {
-      href: img.src,
-      download: `${name}.${f.ext}`,
-    }).click();
+    const file = await toFile(result, info);
+    return mode === "download" ? saveBlob(file) : offerShare(file, host);
   };
 
   /* ---------- background ---------- */
@@ -434,7 +537,9 @@
   };
 
   const isDataImage = (v) =>
-    typeof v === "string" && v.startsWith("data:image/") && v.length > BG.MIN_LEN;
+    typeof v === "string" &&
+    v.startsWith("data:image/") &&
+    v.length > BG.MIN_LEN;
 
   const shrink = async (file) => {
     try {
@@ -502,7 +607,11 @@
 .bg-picker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(15,23,42,.18);display:grid;grid-template-columns:repeat(3,72px);gap:8px;max-width:calc(100% - 24px)}
 .bg-picker button{aspect-ratio:1;padding:0;overflow:hidden;border-radius:8px;border:1px solid #e5e7eb}
 .bg-picker img{width:100%;height:100%;object-fit:cover;display:block}
-.cardprint form{position:relative}`;
+.cardprint form{position:relative}
+.cardprint form>footer{position:relative}
+.cardprint [data-act=save]:disabled{opacity:.6;cursor:progress}
+.share-menu{position:absolute;right:0;bottom:calc(100% + 8px);z-index:20;display:grid;gap:6px;min-width:200px;max-width:100%;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:8px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
+.share-menu button{text-align:left;justify-content:flex-start}`;
   document.head.append(style);
 
   const open = (row) => {
@@ -582,19 +691,106 @@
       fit();
     };
 
+    // Pre-render ("ready" option): render quietly after the last change so a tap can share at once.
+    const footer = $("form > footer");
+    const prerender = { timer: 0, run: 0, job: null, file: null, sig: "" };
+    const sig = () =>
+      JSON.stringify([
+        state.index,
+        state.ratio,
+        state.orientation,
+        state.format,
+        state.fit,
+        state.offsetX,
+        state.offsetY,
+        state.title,
+        state.bg.length,
+        state.bg.slice(-32),
+      ]);
+    const optionOn = (id) => shareOptions().some((o) => o.id === id);
+    const startPrerender = () => {
+      const mine = sig();
+      const run = prerender.run;
+      const promise = renderFile(stage.querySelector("[data-print]"), css).then(
+        (file) => {
+          if (run !== prerender.run) throw new Error("stale");
+          prerender.file = file;
+          prerender.sig = mine;
+          return file;
+        },
+      );
+      prerender.job = { sig: mine, promise };
+      promise.catch(() => {});
+    };
+    // Call after anything that changes the card: drops stale output, schedules a new one.
+    const touch = () => {
+      prerender.run++;
+      prerender.job = prerender.file = null;
+      clearTimeout(prerender.timer);
+      closeMenu(footer);
+      if (optionOn("ready") && fmt().kind === "image")
+        prerender.timer = setTimeout(startPrerender, SH().PRERENDER_MS);
+    };
+
+    const run = (mode) => {
+      const fresh = prerender.file && prerender.sig === sig();
+      if (mode === "ready" && fmt().kind === "image" && fresh)
+        return shareFile(prerender.file); // no await before this: keeps the tap valid
+      const btn = $('[data-act="save"]');
+      btn.disabled = true;
+      const task = async () => {
+        const job = prerender.job?.sig === sig() && prerender.job.promise;
+        if (mode === "ready" && job) {
+          const file = await job.catch(() => null);
+          if (file) return offerShare(file, footer);
+        }
+        return save(stage.querySelector("[data-print]"), css, mode, footer);
+      };
+      return task()
+        .catch(() => alert(B().POPUP))
+        .finally(() => (btn.disabled = false));
+    };
+
+    const onSave = () => {
+      const opts = shareOptions();
+      if (opts.length === 1 || fmt().kind !== "image") return run(opts[0].id);
+      if (footer.querySelector(".share-menu")) return closeMenu(footer);
+      popMenu(
+        footer,
+        opts
+          .map(
+            (o) =>
+              `<button type="button" data-share="${esc(o.id)}">${esc(o.label || o.id)}</button>`,
+          )
+          .join(""),
+      ).addEventListener("click", (e) => {
+        const id = e.target.closest("[data-share]")?.dataset.share;
+        if (!id) return;
+        closeMenu(footer);
+        run(id);
+      });
+    };
+
     const loadDesign = async () => {
       const design = designs[state.index];
-      const oCssUrl = design.oCss === true
-        ? design.css.replace(/[^/]+$/, "o.css")
-        : design.oCss || "";
+      const oCssUrl =
+        design.oCss === true
+          ? design.css.replace(/[^/]+$/, "o.css")
+          : design.oCss || "";
       const [html, designCss, overrideCss] = await Promise.all([
         fetch(design.html).then((r) => r.text()),
         fetch(design.css).then((r) => r.text()),
         oCssUrl
-          ? fetch(oCssUrl).then((r) => (r.ok ? r.text() : "")).catch(() => "")
+          ? fetch(oCssUrl)
+              .then((r) => (r.ok ? r.text() : ""))
+              .catch(() => "")
           : Promise.resolve(""),
       ]);
-      return { design, html, css: designCss + (overrideCss ? "\n" + overrideCss : "") };
+      return {
+        design,
+        html,
+        css: designCss + (overrideCss ? "\n" + overrideCss : ""),
+      };
     };
 
     const paint = async () => {
@@ -609,7 +805,10 @@
       $('[data-act="reset"]').hidden = !state.bg;
       await waitBg(stage.querySelector("[data-plate]"));
       await loadFonts();
-      if (run === painting) relayout();
+      if (run === painting) {
+        relayout();
+        touch();
+      }
     };
 
     const step = (n) => {
@@ -649,6 +848,8 @@
     };
 
     dialog.addEventListener("click", (event) => {
+      if (!event.target.closest(".share-menu,[data-act=save]"))
+        closeMenu(footer);
       const act = event.target.closest("[data-act]")?.dataset.act;
       if (act === "prev") step(-1);
       else if (act === "next") step(1);
@@ -659,10 +860,7 @@
         dropBg();
         paint();
       } else if (act === "bg-pick") showBgPicker();
-      else if (act === "save")
-        save(stage.querySelector("[data-print]"), css).catch(() =>
-          alert(B().POPUP),
-        );
+      else if (act === "save") onSave();
       else if (act === "close") dialog.close();
     });
 
@@ -673,6 +871,7 @@
       syncOrientation();
       remember();
       if (key !== "format") relayout();
+      touch();
     });
 
     // Background fit + pan (does not capture events on content)
@@ -682,6 +881,7 @@
       state.offsetY = 0;
       const plate = stage.querySelector("[data-plate]");
       applyBgFit(plate);
+      touch();
       dialog.querySelectorAll("[data-act^=fit-]").forEach((b) => {
         b.setAttribute("aria-pressed", String(b.dataset.act === "fit-" + fit));
       });
@@ -728,6 +928,7 @@
       applyBgFit(plate);
     });
     const endPan = () => {
+      if (panning) touch();
       panning = false;
     };
     stage.addEventListener("pointerup", endPan);
@@ -739,6 +940,7 @@
         node.textContent = title();
       });
       relayout();
+      touch();
     });
 
     $("[data-bg]").addEventListener("change", async (event) => {
@@ -758,6 +960,8 @@
     dialog.addEventListener("close", () => {
       removeEventListener("resize", onResize);
       window.visualViewport?.removeEventListener("resize", onResize);
+      prerender.run++;
+      clearTimeout(prerender.timer);
       dropBg();
       dialog.remove();
     });

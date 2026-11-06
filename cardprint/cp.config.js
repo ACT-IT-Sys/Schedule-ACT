@@ -64,6 +64,23 @@ const CP_CONFIG = {
   // Pause after the plate image decodes, before snapdom. Desktop/Android finish instantly.
   EXPORT_WAIT: { DECODE_MS: 400, RETRY: 1 },
 
+  // Save options for image exports (PNG / JPEG). Option ids: download | share | ready.
+  //   download: renders, then saves the file straight away.
+  //   share:    renders, then shows a "Save image" button; its tap opens the share sheet (Photos, WhatsApp...).
+  //   ready:    renders quietly after each change, so the tap itself opens the share sheet at once.
+  // One option enabled: the Export button runs it directly. Two or more: it opens a menu.
+  // Where the browser cannot share files, share / ready fall back to a normal download.
+  SHARE: {
+    OPTIONS: [
+      { id: "download", label: "Download file", enabled: true },
+      { id: "share", label: "Share / Save to Photos", enabled: true },
+      { id: "ready", label: "Quick share", enabled: true },
+    ],
+    READY_LABEL: "Save image", // button shown by the "share" option once the image is ready
+    PRERENDER_MS: 800, // quiet time after the last change before "ready" pre-renders
+    REVOKE_MS: 60000, // how long a download link stays valid
+  },
+
   // Shrink-to-fit: passes and safety margin when content overflows the canvas.
   FIT: { MAX_PASSES: 4, SAFETY: 0.98 },
 
@@ -178,5 +195,6 @@ const CP_CONFIG = {
   BACKGROUNDS: [
     { id: "aio", label: "AIO", file: "bg/AIO.webp" },
     { id: "shanghai", label: "Shanghai", file: "bg/shanghai.webp" },
+    { id: "scanner", label: "Scanner", file: "bg/scanner.webp" },
   ],
 };
