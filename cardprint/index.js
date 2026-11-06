@@ -170,21 +170,44 @@
   };
 
   // Apply fit + pan to a plate element (preview or export bake).
-  const applyBgFit = (plate) => {
+  // Preload in the top document and prefer a data URL so iOS iframes can paint it.
+  const toDataUrl = (src) =>
+    new Promise((res) => {
+      if (!src || src.startsWith("data:")) return res(src || "");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const cv = document.createElement("canvas");
+          cv.width = img.naturalWidth;
+          cv.height = img.naturalHeight;
+          cv.getContext("2d").drawImage(img, 0, 0);
+          res(cv.toDataURL("image/jpeg", 0.9));
+        } catch (e) {
+          res(src);
+        }
+      };
+      img.onerror = () => res(src);
+      img.src = src;
+    });
+
+  const applyBgFit = (plate, resolved) => {
     if (!plate) return;
-    const raw = plate.style.getPropertyValue("--cp-bg");
+    const raw = resolved || plate.style.getPropertyValue("--cp-bg");
     if (!raw || raw === "none") {
       plate.style.backgroundImage = "none";
       return;
     }
-    const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1] || raw;
+    const url = (String(raw).match(/url\(["']?([^"')]+)/) || [])[1] || raw;
     const img = `url("${url}")`;
+    const size = state.fit === "height" ? "auto 100%" : "100% auto";
+    const pos = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.setProperty("--cp-bg", img);
     plate.style.backgroundImage = img;
-    plate.style.backgroundSize = state.fit === "height" ? "auto 100%" : "100% auto";
-    plate.style.backgroundPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
+    plate.style.backgroundSize = size;
+    plate.style.webkitBackgroundSize = size;
+    plate.style.backgroundPosition = pos;
     plate.style.backgroundRepeat = "no-repeat";
-    plate.style.backgroundColor = "transparent";
   };
 
   const waitBg = (plate) => {
@@ -200,7 +223,7 @@
     });
   };
 
-  const fill = (root, row, design) => {
+  const fill = async (root, row, design) => {
     root.querySelectorAll("[data-field]").forEach((node) => {
       node.textContent = field(row, node.dataset.field);
     });
@@ -234,9 +257,14 @@
     const plate = root.querySelector("[data-plate]");
     if (plate) {
       const url = plateUrl(design);
-      if (url) plate.style.setProperty("--cp-bg", `url("${url}")`);
-      else plate.style.removeProperty("--cp-bg");
-      applyBgFit(plate);
+      if (url) {
+        const resolved = await toDataUrl(url);
+        plate.style.setProperty("--cp-bg", `url("${resolved}")`);
+        applyBgFit(plate, resolved);
+      } else {
+        plate.style.removeProperty("--cp-bg");
+        applyBgFit(plate);
+      }
     }
   };
 
@@ -518,7 +546,7 @@
       stage.innerHTML = `<style>${BASE_CSS}${css}</style>${loaded.html}`;
       const root = stage.querySelector("[data-print]");
       if (loaded.design.theme) root.dataset.theme = loaded.design.theme;
-      fill(stage, state.row, loaded.design);
+      await fill(stage, state.row, loaded.design);
       $('[data-act="reset"]').hidden = !state.bg;
       await waitBg(stage.querySelector("[data-plate]"));
       await loadFonts();

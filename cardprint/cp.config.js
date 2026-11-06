@@ -18,7 +18,7 @@ const CP_CONFIG = {
 
   // Ratios are written portrait (w < h). Landscape swaps them. 1:1 has no orientation.
   RATIOS: [
-    // { id: "1:1", label: "1:1", w: 1, h: 1 },
+    { id: "1:1", label: "1:1", w: 1, h: 1 },
     { id: "3:4", label: "3:4", w: 3, h: 4 },
     { id: "9:16", label: "9:16", w: 9, h: 16 },
   ],
@@ -57,7 +57,7 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["print", "pdf"],
+  HIDDEN: ["pdf"],
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
@@ -141,7 +141,7 @@ const CP_CONFIG = {
       css: "cardprint/import-light/design.css",
       bg: "bg/AIO.webp",
       theme: "light",
-      oCss: true, // loads cardprint/import-light/o.css after design.css
+      // oCss: true,  // loads cardprint/import-light/o.css after design.css
     },
     {
       id: "import-dark",
@@ -150,7 +150,6 @@ const CP_CONFIG = {
       css: "cardprint/import-dark/design.css",
       bg: "bg/AIO.webp",
       theme: "dark",
-      oCss: true, // loads cardprint/import-dark/o.css after design.css
     },
     {
       id: "import-a",
@@ -158,8 +157,7 @@ const CP_CONFIG = {
       html: "cardprint/import-a/design.html",
       css: "cardprint/import-a/design.css",
       bg: "bg/AIO.webp",
-      // enabled: false,
-      oCss: true, // loads cardprint/import-a/o.css after design.css
+      enabled: false,
     },
     {
       id: "modern-1",
@@ -167,7 +165,6 @@ const CP_CONFIG = {
       html: "cardprint/modern-1/design.html",
       css: "cardprint/modern-1/design.css",
       bg: "bg/AIO.webp",
-      oCss: true, // loads cardprint/modern-1/o.css after design.css
     },
   ],
 
