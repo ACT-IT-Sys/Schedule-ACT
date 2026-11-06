@@ -287,6 +287,23 @@
       $("sortDurationLabel").textContent = CONFIG.SORT_CYCLE[0].label;
       renderUI();
     });
+    
+    $("hardRefreshBtn")?.addEventListener("click", async () => {
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {}
+      location.reload();
+    });
+
     $("themeToggle").addEventListener("click", () => {
       applyTheme(AppState.theme === "dark" ? "light" : "dark");
     });
