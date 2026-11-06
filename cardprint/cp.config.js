@@ -61,6 +61,9 @@ const CP_CONFIG = {
   PDF_DPI: 96,
   EXPORT_BG: "#ffffff",
 
+  // Pause after the plate image decodes, before snapdom. Desktop/Android finish instantly.
+  EXPORT_WAIT: { DECODE_MS: 400, RETRY: 1 },
+
   // Shrink-to-fit: passes and safety margin when content overflows the canvas.
   FIT: { MAX_PASSES: 4, SAFETY: 0.98 },
 

@@ -364,13 +364,44 @@
     }
 
     await loadDeps(f.kind);
-    const { frame, d } = await mount(name, html, css);
-    const el = d.querySelector("[data-print]");
-    const result = await window.snapdom(el, {
-      scale,
-      backgroundColor: K().EXPORT_BG,
-    });
-    frame.remove();
+    const wait = K().EXPORT_WAIT || {};
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    const capture = async () => {
+      const { frame, d } = await mount(name, html, css);
+      const el = d.querySelector("[data-print]");
+      const plate = d.querySelector("[data-plate]");
+      const bg = plate && urlOf(plateBg(plate));
+      if (bg) {
+        const probe = new Image();
+        probe.src = bg;
+        if (probe.decode) await probe.decode().catch(() => {});
+      }
+      await pause(wait.DECODE_MS || 0);
+      const result = await window.snapdom(el, {
+        scale,
+        backgroundColor: K().EXPORT_BG,
+      });
+      frame.remove();
+      return result;
+    };
+    const blank = async (res) => {
+      try {
+        const cv = await res.toCanvas();
+        const ctx = cv.getContext("2d");
+        const pts = [[8, 8], [cv.width - 8, 8], [8, cv.height - 8]];
+        const bg = K().EXPORT_BG;
+        return pts.every(([x, y]) => {
+          const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+          const hex = "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+          return hex === bg;
+        });
+      } catch (e) {
+        return false;
+      }
+    };
+    let result = await capture();
+    for (let i = 0; i < (wait.RETRY || 0) && (await blank(result)); i++)
+      result = await capture();
 
     if (f.kind === "pdf") {
       const canvas = await result.toCanvas();
