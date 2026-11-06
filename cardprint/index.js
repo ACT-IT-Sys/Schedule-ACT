@@ -10,6 +10,13 @@
   const K = () => CP_CONFIG;
 
   const UI = { MARGIN: 16, PAD: 12, GAP: 10 };
+  // Background pipeline: smallest plausible data URL, and the default error text.
+  // Override the text with CP_CONFIG.LABELS.BG_ERROR.
+  const BG = {
+    MIN_LEN: 64,
+    ERROR: "Background image could not be loaded. Please try again.",
+  };
+  const bgError = () => C().LABELS?.BG_ERROR || BG.ERROR;
   const BASE_CSS =
     "[hidden]{display:none!important}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
 
@@ -170,25 +177,8 @@
   };
 
   // Apply fit + pan to a plate element (preview or export bake).
-  // Preload in the top document and prefer a data URL so iOS iframes can paint it.
-  const toDataUrl = (src) =>
-    new Promise((res) => {
-      if (!src || src.startsWith("data:")) return res(src || "");
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const cv = document.createElement("canvas");
-          cv.width = img.naturalWidth;
-          cv.height = img.naturalHeight;
-          cv.getContext("2d").drawImage(img, 0, 0);
-          res(cv.toDataURL("image/jpeg", 0.92));
-        } catch (e) {
-          res(src);
-        }
-      };
-      img.onerror = () => res(src);
-      img.src = src;
-    });
+  const plateBg = (plate) =>
+    plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
 
   const applyBgFit = (plate, resolved) => {
     if (!plate) return;
@@ -197,8 +187,7 @@
       plate.style.backgroundImage = "none";
       return;
     }
-    const url = (String(raw).match(/url\(["']?([^"')]+)/) || [])[1] || raw;
-    const img = `url("${url}")`;
+    const img = `url("${urlOf(raw) || raw}")`;
     const size = state.fit === "height" ? "auto 100%" : "100% auto";
     const pos = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.setProperty("--cp-bg", img);
@@ -210,10 +199,7 @@
   };
 
   const waitBg = (plate) => {
-    if (!plate) return Promise.resolve();
-    const raw =
-      plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
-    const url = (raw.match(/url\(["']?([^"')]+)/) || [])[1];
+    const url = plate && urlOf(plateBg(plate));
     if (!url) return Promise.resolve();
     return new Promise((res) => {
       const img = new Image();
@@ -257,9 +243,8 @@
     if (plate) {
       const url = plateUrl(design);
       if (url) {
-        const resolved = await toDataUrl(url);
-        plate.style.setProperty("--cp-bg", `url("${resolved}")`);
-        applyBgFit(plate, resolved);
+        // Preview tolerates a plain URL if baking fails; save() re-bakes and aborts.
+        applyBgFit(plate, await resolveBg(url).catch(() => url));
       } else {
         plate.style.removeProperty("--cp-bg");
         applyBgFit(plate);
@@ -295,6 +280,7 @@
   const settle = async (d) => {
     await loadFonts(d);
     await imagesReady(d);
+    await waitBg(d.querySelector("[data-plate]"));
     if (d.fonts?.ready) await d.fonts.ready;
   };
 
@@ -339,12 +325,12 @@
     const scale = f.scale || 1;
     const name = `${state.row.vessel || "card"}-${state.row.voyage || "schedule"}-${c.w * scale}x${c.h * scale}`;
     const plate = node.querySelector("[data-plate]");
-    if (plate) {
-      const raw = plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
-      const src = (String(raw).match(/url\(["']?([^"')]+)/) || [])[1];
-      if (src && !src.startsWith("data:")) {
-        const resolved = await toDataUrl(src);
-        applyBgFit(plate, resolved);
+    const src = plate && urlOf(plateBg(plate));
+    if (src && !src.startsWith("data:")) {
+      try {
+        applyBgFit(plate, await resolveBg(src));
+      } catch (e) {
+        return alert(bgError());
       }
     }
     const html = plateHtml(node);
@@ -413,6 +399,11 @@
     state.bg = "";
   };
 
+  const isDataImage = (v) =>
+    typeof v === "string" &&
+    v.startsWith("data:image/") &&
+    v.length > BG.MIN_LEN;
+
   const shrink = async (file) => {
     try {
       const { MAX_SIDE, QUALITY } = K().UPLOAD;
@@ -424,7 +415,9 @@
       });
       cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
       bmp.close?.();
-      return cv.toDataURL("image/jpeg", QUALITY);
+      const out = cv.toDataURL("image/jpeg", QUALITY);
+      if (!isDataImage(out)) throw new Error("empty canvas");
+      return out;
     } catch (e) {
       return new Promise((res) => {
         const r = new FileReader();
@@ -433,6 +426,32 @@
         r.readAsDataURL(file);
       });
     }
+  };
+
+  // One pipeline for every background: fetch -> blob -> shrink -> data URL (cached).
+  // Uploads are already data URLs and pass through. Rejects instead of returning junk.
+  const bgCache = new Map();
+  const resolveBg = (src) => {
+    if (!src || src.startsWith("data:")) return Promise.resolve(src || "");
+    if (!bgCache.has(src))
+      bgCache.set(
+        src,
+        fetch(src)
+          .then((r) => {
+            if (!r.ok) throw new Error(`${r.status} ${src}`);
+            return r.blob();
+          })
+          .then(shrink)
+          .then((out) => {
+            if (!isDataImage(out)) throw new Error(`Unusable image ${src}`);
+            return out;
+          })
+          .catch((e) => {
+            bgCache.delete(src);
+            throw e;
+          }),
+      );
+    return bgCache.get(src);
   };
 
   /* ---------- dialog ---------- */
@@ -533,17 +552,24 @@
 
     const loadDesign = async () => {
       const design = designs[state.index];
-      const oCssUrl = design.oCss === true
-        ? design.css.replace(/[^/]+$/, "o.css")
-        : design.oCss || "";
+      const oCssUrl =
+        design.oCss === true
+          ? design.css.replace(/[^/]+$/, "o.css")
+          : design.oCss || "";
       const [html, designCss, overrideCss] = await Promise.all([
         fetch(design.html).then((r) => r.text()),
         fetch(design.css).then((r) => r.text()),
         oCssUrl
-          ? fetch(oCssUrl).then((r) => (r.ok ? r.text() : "")).catch(() => "")
+          ? fetch(oCssUrl)
+              .then((r) => (r.ok ? r.text() : ""))
+              .catch(() => "")
           : Promise.resolve(""),
       ]);
-      return { design, html, css: designCss + (overrideCss ? "\n" + overrideCss : "") };
+      return {
+        design,
+        html,
+        css: designCss + (overrideCss ? "\n" + overrideCss : ""),
+      };
     };
 
     const paint = async () => {
