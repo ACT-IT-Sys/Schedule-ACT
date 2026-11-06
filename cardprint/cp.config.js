@@ -35,7 +35,7 @@ const CP_CONFIG = {
       kind: "image",
       mime: "image/png",
       ext: "png",
-      scale: 3,
+      scale: 1.2,
     },
     {
       id: "jpeg",
@@ -43,7 +43,7 @@ const CP_CONFIG = {
       kind: "image",
       mime: "image/jpeg",
       ext: "jpeg",
-      scale: 2,
+      scale: 1,
       quality: 0.92,
     },
     {
@@ -57,9 +57,9 @@ const CP_CONFIG = {
     { id: "print", label: "Print", kind: "print" },
   ],
   // Formats kept in the code but not offered in the dropdown. Empty the list to show them.
-  HIDDEN: ["pdf"],
+  HIDDEN: ["print", "pdf"],
   PDF_DPI: 96,
-  EXPORT_BG: "#ffffff",
+  EXPORT_BG: "#ffffffda",
 
   // Pause after the plate image decodes, before snapdom. Desktop/Android finish instantly.
   EXPORT_WAIT: { DECODE_MS: 400, RETRY: 1 },
