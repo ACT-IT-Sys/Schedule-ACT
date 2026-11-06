@@ -35,7 +35,7 @@ const CP_CONFIG = {
       kind: "image",
       mime: "image/png",
       ext: "png",
-      scale: 1.2,
+      scale: 3,
     },
     {
       id: "jpeg",
@@ -43,7 +43,7 @@ const CP_CONFIG = {
       kind: "image",
       mime: "image/jpeg",
       ext: "jpeg",
-      scale: 1,
+      scale: 2,
       quality: 0.92,
     },
     {
