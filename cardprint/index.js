@@ -175,14 +175,13 @@
     new Promise((res) => {
       if (!src || src.startsWith("data:")) return res(src || "");
       const img = new Image();
-      img.crossOrigin = "anonymous";
       img.onload = () => {
         try {
           const cv = document.createElement("canvas");
           cv.width = img.naturalWidth;
           cv.height = img.naturalHeight;
           cv.getContext("2d").drawImage(img, 0, 0);
-          res(cv.toDataURL("image/jpeg", 0.9));
+          res(cv.toDataURL("image/jpeg", 0.92));
         } catch (e) {
           res(src);
         }
@@ -339,6 +338,15 @@
     const c = dims();
     const scale = f.scale || 1;
     const name = `${state.row.vessel || "card"}-${state.row.voyage || "schedule"}-${c.w * scale}x${c.h * scale}`;
+    const plate = node.querySelector("[data-plate]");
+    if (plate) {
+      const raw = plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
+      const src = (String(raw).match(/url\(["']?([^"')]+)/) || [])[1];
+      if (src && !src.startsWith("data:")) {
+        const resolved = await toDataUrl(src);
+        applyBgFit(plate, resolved);
+      }
+    }
     const html = plateHtml(node);
 
     if (f.kind === "print") {
