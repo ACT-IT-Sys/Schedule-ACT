@@ -180,36 +180,42 @@
   const plateBg = (plate) =>
     plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
 
-  const cssUrl = (raw) => {
-    if (!raw || raw === "none") return "";
-    if (String(raw).startsWith("data:") || /^https?:/i.test(raw)) return `url("${raw}")`;
-    return `url("${urlOf(raw) || raw}")`;
-  };
+  // Real <img> — iOS paints this for data URLs and file URLs; CSS url() does not.
   const applyBgFit = (plate, resolved) => {
     if (!plate) return;
-    const raw = resolved || urlOf(plate.style.getPropertyValue("--cp-bg")) || plate.style.getPropertyValue("--cp-bg");
-    const img = cssUrl(raw);
-    if (!img) {
+    const raw = resolved || urlOf(plate.style.getPropertyValue("--cp-bg")) || "";
+    const src = urlOf(raw) || (String(raw).startsWith("data:") || /^https?:/i.test(raw) ? raw : "");
+    let img = plate.querySelector(":scope > img.cp-bg");
+    if (!src) {
+      img?.remove();
       plate.style.backgroundImage = "none";
       return;
     }
-    const size = state.fit === "height" ? "auto 100%" : "100% auto";
-    const pos = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
-    plate.style.setProperty("--cp-bg", img);
-    plate.style.backgroundImage = img;
-    plate.style.backgroundSize = size;
-    plate.style.webkitBackgroundSize = size;
-    plate.style.backgroundPosition = pos;
-    plate.style.backgroundRepeat = "no-repeat";
+    if (!img) {
+      img = document.createElement("img");
+      img.className = "cp-bg";
+      img.alt = "";
+      img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none";
+      plate.style.position = "relative";
+      plate.prepend(img);
+    }
+    const pos = state.fit === "height" ? "center" : "center";
+    img.style.objectFit = "cover";
+    img.style.objectPosition = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
+    if (img.getAttribute("src") !== src) img.src = src;
+    plate.style.setProperty("--cp-bg", `url("${src}")`);
+    plate.style.backgroundImage = "none";
   };
 
   const waitBg = (plate) => {
-    const url = plate && urlOf(plateBg(plate));
+    const el = plate && plate.querySelector(":scope > img.cp-bg");
+    const url = (el && el.src) || (plate && urlOf(plateBg(plate)));
     if (!url) return Promise.resolve();
+    if (el && el.complete) return Promise.resolve();
     return new Promise((res) => {
-      const img = new Image();
+      const img = el || new Image();
       img.onload = img.onerror = () => res();
-      img.src = url;
+      if (!el) img.src = url;
     });
   };
 
@@ -475,7 +481,7 @@
 .bg-picker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(15,23,42,.18);display:grid;grid-template-columns:repeat(3,72px);gap:8px;max-width:calc(100% - 24px)}
 .bg-picker button{aspect-ratio:1;padding:0;overflow:hidden;border-radius:8px;border:1px solid #e5e7eb}
 .bg-picker img{width:100%;height:100%;object-fit:cover;display:block}
-.cardprint form{position:relative}`;
+.cardprint form{position:relative}.cp-glass .plate>*:not(.cp-bg){position:relative;z-index:1}`;
   document.head.append(style);
 
   const open = (row) => {
