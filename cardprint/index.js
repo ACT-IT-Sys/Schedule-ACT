@@ -180,14 +180,19 @@
   const plateBg = (plate) =>
     plate.style.backgroundImage || plate.style.getPropertyValue("--cp-bg");
 
+  const cssUrl = (raw) => {
+    if (!raw || raw === "none") return "";
+    if (String(raw).startsWith("data:") || /^https?:/i.test(raw)) return `url("${raw}")`;
+    return `url("${urlOf(raw) || raw}")`;
+  };
   const applyBgFit = (plate, resolved) => {
     if (!plate) return;
-    const raw = resolved || plate.style.getPropertyValue("--cp-bg");
-    if (!raw || raw === "none") {
+    const raw = resolved || urlOf(plate.style.getPropertyValue("--cp-bg")) || plate.style.getPropertyValue("--cp-bg");
+    const img = cssUrl(raw);
+    if (!img) {
       plate.style.backgroundImage = "none";
       return;
     }
-    const img = `url("${urlOf(raw) || raw}")`;
     const size = state.fit === "height" ? "auto 100%" : "100% auto";
     const pos = `${50 + state.offsetX}% ${50 + state.offsetY}%`;
     plate.style.setProperty("--cp-bg", img);
@@ -243,8 +248,10 @@
     if (plate) {
       const url = plateUrl(design);
       if (url) {
-        // Preview tolerates a plain URL if baking fails; save() re-bakes and aborts.
-        applyBgFit(plate, await resolveBg(url).catch(() => url));
+        const resolved = url.startsWith("data:")
+          ? url
+          : await resolveBg(url).catch(() => url);
+        applyBgFit(plate, resolved);
       } else {
         plate.style.removeProperty("--cp-bg");
         applyBgFit(plate);
@@ -325,12 +332,12 @@
     const scale = f.scale || 1;
     const name = `${state.row.vessel || "card"}-${state.row.voyage || "schedule"}-${c.w * scale}x${c.h * scale}`;
     const plate = node.querySelector("[data-plate]");
-    const src = plate && urlOf(plateBg(plate));
+    const src = plate && (urlOf(plateBg(plate)) || "");
     if (src && !src.startsWith("data:")) {
       try {
         applyBgFit(plate, await resolveBg(src));
       } catch (e) {
-        return alert(bgError());
+        applyBgFit(plate, src);
       }
     }
     const html = plateHtml(node);
@@ -400,9 +407,7 @@
   };
 
   const isDataImage = (v) =>
-    typeof v === "string" &&
-    v.startsWith("data:image/") &&
-    v.length > BG.MIN_LEN;
+    typeof v === "string" && v.startsWith("data:image/") && v.length > BG.MIN_LEN;
 
   const shrink = async (file) => {
     try {
@@ -552,24 +557,17 @@
 
     const loadDesign = async () => {
       const design = designs[state.index];
-      const oCssUrl =
-        design.oCss === true
-          ? design.css.replace(/[^/]+$/, "o.css")
-          : design.oCss || "";
+      const oCssUrl = design.oCss === true
+        ? design.css.replace(/[^/]+$/, "o.css")
+        : design.oCss || "";
       const [html, designCss, overrideCss] = await Promise.all([
         fetch(design.html).then((r) => r.text()),
         fetch(design.css).then((r) => r.text()),
         oCssUrl
-          ? fetch(oCssUrl)
-              .then((r) => (r.ok ? r.text() : ""))
-              .catch(() => "")
+          ? fetch(oCssUrl).then((r) => (r.ok ? r.text() : "")).catch(() => "")
           : Promise.resolve(""),
       ]);
-      return {
-        design,
-        html,
-        css: designCss + (overrideCss ? "\n" + overrideCss : ""),
-      };
+      return { design, html, css: designCss + (overrideCss ? "\n" + overrideCss : "") };
     };
 
     const paint = async () => {
@@ -612,7 +610,8 @@
         if (!btn) return;
         if (btn.dataset.file) {
           dropBg();
-          state.bg = new URL(btn.dataset.file, BASE).href;
+          const abs = new URL(btn.dataset.file, BASE).href;
+          state.bg = await resolveBg(abs).catch(() => abs);
           picker.remove();
           paint();
         } else if (btn.dataset.act === "upload") {
