@@ -1,8 +1,8 @@
 /* 1. Base / Desktop styles first */
-/* .bg-picker {
+.bg-picker {
   box-shadow: 0 10px 50px rgba(15, 23, 42, 0.85) !important;
   top: 27% !important;
-} */
+}
 
 body > dialog > form > header > button.pick-bg {
   z-index: 21;
@@ -13,8 +13,8 @@ body > dialog > form > header > button.pick-bg {
 }
 
 /* 2. Media queries at the bottom to override base styles */
-/* @media screen and (max-width: 440px) {
+@media screen and (max-width: 440px) {
   .bg-picker {
     top: 38% !important;
   }
-} */
+}

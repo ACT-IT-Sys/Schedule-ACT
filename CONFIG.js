@@ -253,4 +253,30 @@ const CONFIG = {
     MAIL: "mailto:",
     PLATFORMS: [{ key: "wa", icon: "img/wa.webp" }],
   },
+
+  PWA: {
+    NAME: "Schedule ACT",
+    SHORT_NAME: "ACT",
+    START: "./",
+    SCOPE: "./",
+    DISPLAY: "standalone",
+    THEME: "#047857",
+    BACKGROUND: "#f4f7f5",
+    ICONS: [
+      { src: "img/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "img/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    CACHE: "schedule-act-shell-v1",
+    SHELL: [
+      "./",
+      "./index.html",
+      "./css/styles.css",
+      "./css/bulk.css",
+      "./js/main.js",
+      "./js/bulk.js",
+      "./CONFIG.js",
+      "./cardprint/cp.config.js",
+      "./cardprint/index.js",
+    ],
+  },
 };

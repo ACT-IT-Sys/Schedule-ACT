@@ -15,6 +15,11 @@
     <title>ACT Global - Freight Services</title>
 
     <link rel="icon" type="image/webp" href="/img/favicon.webp" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Schedule ACT" />
+    <meta name="theme-color" content="#047857" />
 
     <link rel="stylesheet" href="css/styles.css" />
     <script>
@@ -205,5 +210,11 @@
     <script src="js/main.js"></script>
     <script src="cardprint/index.js"></script>
     <script src="js/bulk.js"></script>
+  
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      }
+    </script>
   </body>
 </html>
