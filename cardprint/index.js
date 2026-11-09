@@ -609,7 +609,7 @@
 .bg-picker img{width:100%;height:100%;object-fit:cover;display:block}
 .cardprint form{position:relative}
 .cardprint form>footer{position:relative}
-.cardprint [data-act=save]:disabled{opacity:.6;cursor:progress}
+.cardprint [data-act=save]:disabled{background:#b91c1c;border-color:#b91c1c;color:#fff;letter-spacing:.2em;cursor:progress;opacity:1}
 .share-menu{position:absolute;right:0;bottom:calc(100% + 8px);z-index:20;display:grid;gap:6px;min-width:200px;max-width:100%;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:8px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
 .share-menu button{text-align:left;justify-content:flex-start}`;
   document.head.append(style);
@@ -650,7 +650,7 @@
   ${choice("ratio", cfg.LABELS.RATIO, cfg.RATIOS)}
   ${choice("orientation", cfg.LABELS.ORIENTATION, cfg.ORIENTATIONS)}
   ${formats().length > 1 ? choice("format", cfg.LABELS.FORMAT, formats()) : ""}
-  <button type="button" data-act="save">${esc(B().EXECUTE)}</button>
+  <button type="button" data-act="save">${esc(cfg.LABELS.EXPORT || "Export")}</button>
 </footer>
 </form>`;
     document.body.append(dialog);
@@ -737,7 +737,10 @@
       if (mode === "ready" && fmt().kind === "image" && fresh)
         return shareFile(prerender.file); // no await before this: keeps the tap valid
       const btn = $('[data-act="save"]');
+      const waitLabel = cfg.LABELS.WAIT || "W A I T";
+      const exportLabel = cfg.LABELS.EXPORT || "Export";
       btn.disabled = true;
+      btn.textContent = waitLabel;
       const task = async () => {
         const job = prerender.job?.sig === sig() && prerender.job.promise;
         if (mode === "ready" && job) {
@@ -748,7 +751,7 @@
       };
       return task()
         .catch(() => alert(B().POPUP))
-        .finally(() => (btn.disabled = false));
+        .finally(() => { btn.disabled = false; btn.textContent = exportLabel; });
     };
 
     const onSave = () => {
@@ -966,7 +969,16 @@
       dialog.remove();
     });
 
-    dialog.showModal();
+    try {
+      dialog.showModal();
+    } catch (e) {
+      dialog.remove();
+      return;
+    }
+    if (!dialog.open) {
+      dialog.remove();
+      return;
+    }
     syncOrientation();
     paint();
   };
@@ -975,9 +987,10 @@
     const cards = document.getElementById("cards");
     if (!cards) return;
     cards.addEventListener("click", (event) => {
-      const hit = event.target.closest(".route-top > div:first-child");
+      const hit = event.target.closest(".origin-hit, .route-top > div:first-child");
       const card = hit && hit.closest(".card");
       if (!card) return;
+      event.preventDefault();
       const row = ((window.ACT && ACT.visible) || [])[Number(card.dataset.i)];
       if (row) open(row);
     });

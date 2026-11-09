@@ -99,6 +99,8 @@ const CP_CONFIG = {
     FORMAT: "Export",
     FIT_HEIGHT: "Fit height",
     FIT_WIDTH: "Fit width",
+    EXPORT: "Export",
+    WAIT: "W A I T",
   },
 
   // Short display labels for card fields. Stable against sheet header renames.
