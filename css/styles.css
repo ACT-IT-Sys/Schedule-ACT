@@ -654,3 +654,8 @@ body > dialog > form > input {
 .bulk-modal select {
   min-height: 36px;
 }
+
+.pwa-banner{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;border-radius:14px;background:var(--bg-elev);border:1px solid var(--border);box-shadow:var(--shadow)}
+.pwa-banner p{margin:0;flex:1 1 180px;font-size:.82rem}
+.pwa-banner button{min-height:36px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);padding:0 12px}
+.pwa-banner [data-pwa=install]{background:var(--brand);border-color:var(--brand);color:#fff}

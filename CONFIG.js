@@ -266,6 +266,12 @@ const CONFIG = {
       { src: "img/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "img/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
+    SNOOZE_DAYS: 3,
+    SNOOZE_KEY: "schedule-act-pwa-snooze",
+    PROMPT: "Install the app for a full-screen view and fewer browser issues on mobile.",
+    INSTALL: "Install",
+    LATER: "Not now",
+    IOS_HINT: "On iPhone: Share, then Add to Home Screen.",
     CACHE: "schedule-act-shell-v1",
     SHELL: [
       "./",
