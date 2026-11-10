@@ -127,6 +127,15 @@
       .catch(() => []);
   }
 
+
+  function isExpired(row) {
+    const d = parseDate(row.cfsCutOff);
+    if (!d) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today;
+  }
+
   function renderUI() {
     let data = AppState.rawRows.filter(
       (r) =>
@@ -147,6 +156,8 @@
           ? a.duration - b.duration
           : b.duration - a.duration,
       );
+    const hideExpired = (CONFIG.EXPIRED || {}).HIDE !== false && AppState.isCurrentMonth;
+    if (hideExpired) data = data.filter((r) => !isExpired(r));
 
     window.ACT = { visible: data, parseDate, format: formatDate };
     $("itemCount").textContent = String(data.length);
@@ -173,7 +184,10 @@
           .map((item, i) => {
             const spec =
               CONFIG.CARD_LAYOUT[AppState.groupBy] || CONFIG.CARD_LAYOUT.origin;
-            return `<article class="card" data-i="${i}">
+            const exp = isExpired(item);
+            const X = CONFIG.EXPIRED || {};
+            return `<article class="card${exp ? " is-expired" : ""}" data-i="${i}">
+                ${exp ? `<p class="expired-note"><b>${esc(X.LABEL || "Expired")}</b> — ${esc(X.NOTE || "")}</p>` : ""}
                 <div class="route-top">
                     <button type="button" class="origin-hit" title="${esc(CP_CONFIG.OPEN || "Print card")}"><h2>${esc(item[AppState.groupBy])}</h2><div class="stem">${pin}<span>${esc(item[spec.stem])}</span></div></button>
                     ${spec.cols.map(([lbl, k]) => `<div><span class="k">${esc(lbl)}</span><span class="v">${esc(item[k])}</span></div>`).join("")}

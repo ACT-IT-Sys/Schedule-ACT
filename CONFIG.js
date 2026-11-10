@@ -255,6 +255,12 @@ const CONFIG = {
     ],
   },
 
+  EXPIRED: {
+    HIDE: true,
+    LABEL: "Expired",
+    NOTE: "Contact us for the best alternative",
+  },
+
   CP: {
     TAB: "CP",
     EMPTY: "—",

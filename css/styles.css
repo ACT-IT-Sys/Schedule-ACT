@@ -666,3 +666,7 @@ body > dialog > form > input {
 .inquire-btn{flex:0 0 auto;min-height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg-elev);padding:0 10px;font-size:.72rem;font-weight:650}
 .inquire-menu{position:absolute;right:14px;bottom:52px;z-index:5;display:grid;gap:6px;min-width:140px;background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:8px;box-shadow:var(--shadow)}
 .inquire-menu button{text-align:left;min-height:36px;border:0;background:transparent;border-radius:8px}
+
+.card.is-expired{opacity:.55}
+.expired-note{margin:0;font-size:.85rem;color:var(--danger)}
+.expired-note b{font-size:1rem}
