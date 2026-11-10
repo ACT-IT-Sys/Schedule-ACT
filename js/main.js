@@ -368,9 +368,15 @@
     if (standalone || !P.PROMPT) return;
     const until = Number(localStorage.getItem(P.SNOOZE_KEY) || 0);
     if (until && Date.now() < until) return;
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const safari = ios || (/Safari/.test(navigator.userAgent) && !/Chrome|CriOS|Edg/.test(navigator.userAgent));
     const bar = document.createElement("div");
     bar.className = "pwa-banner";
-    bar.innerHTML = `<p>${P.PROMPT}</p><button type="button" data-pwa="install">${P.INSTALL}</button><button type="button" data-pwa="later">${P.LATER}</button>`;
+    const share = P.IOS_SHARE || "⬆︎";
+    bar.innerHTML = safari
+      ? `<p>${share} ${P.IOS_HINT || P.PROMPT}</p><button type="button" data-pwa="later">${P.LATER}</button>`
+      : `<p>${P.PROMPT}</p><button type="button" data-pwa="install">${P.INSTALL}</button><button type="button" data-pwa="later">${P.LATER}</button>`;
     document.body.append(bar);
     const snooze = () => {
       const days = P.SNOOZE_DAYS || 3;
@@ -378,21 +384,22 @@
       bar.remove();
     };
     let promptEvent = null;
-    addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      promptEvent = e;
-    });
+    if (!safari) {
+      addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        promptEvent = e;
+      });
+    }
     bar.addEventListener("click", async (e) => {
       const act = e.target.closest("[data-pwa]")?.dataset.pwa;
       if (act === "later") return snooze();
-      if (act !== "install") return;
+      if (act !== "install" || safari) return;
       if (promptEvent) {
         promptEvent.prompt();
         await promptEvent.userChoice.catch(() => {});
         promptEvent = null;
-        return snooze();
       }
-      bar.querySelector("p").textContent = P.IOS_HINT || P.PROMPT;
+      snooze();
     });
   }
 

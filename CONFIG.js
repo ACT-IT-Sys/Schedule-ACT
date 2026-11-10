@@ -284,7 +284,8 @@ const CONFIG = {
     PROMPT: "Install the app for a full-screen view and fewer browser issues on mobile.",
     INSTALL: "Install",
     LATER: "Not now",
-    IOS_HINT: "On iPhone: Share, then Add to Home Screen.",
+    IOS_HINT: "On iPhone: tap Share, then Add to Home Screen.",
+    IOS_SHARE: "⬆︎",
     CACHE: "schedule-act-shell-v1",
     SHELL: [
       "./",

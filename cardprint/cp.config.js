@@ -72,7 +72,7 @@ const CP_CONFIG = {
   // Where the browser cannot share files, share / ready fall back to a normal download.
   SHARE: {
     OPTIONS: [
-      { id: "download", label: "Download file", enabled: true },
+      { id: "download", label: "Download file", enabled: false },
       { id: "share", label: "Share / Save to Photos", enabled: true },
       { id: "ready", label: "Quick share", enabled: true },
     ],
