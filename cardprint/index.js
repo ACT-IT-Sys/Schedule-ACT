@@ -29,6 +29,27 @@
     const on = SH().OPTIONS.filter((o) => o.enabled !== false);
     return on.length ? on : SHARE_FALLBACK.OPTIONS;
   };
+  // Dialog layout + safety nets. Real values live in CP_CONFIG.DIALOG; these cover a missing block.
+  const DLG_FALLBACK = {
+    MAX_WIDTH: 720,
+    MIN_HEIGHT: 120,
+    MIN_STAGE: 120,
+    CHROME_EST: 96,
+    TIMEOUT_MS: 8000,
+    CHECK_MS: 1000,
+    WARM: true,
+    WARM_DELAY_MS: 1500,
+    DEBUG: false,
+    ERROR: "The card could not be opened. Please try again.",
+  };
+  const DLG = () => ({ ...DLG_FALLBACK, ...K().DIALOG });
+  const loadError = () => C().LABELS?.LOAD_ERROR || DLG().ERROR;
+  const vpHeight = () => window.visualViewport?.height || innerHeight;
+  const withTimeout = (promise, ms) =>
+    Promise.race([
+      promise,
+      new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
+    ]);
   const BASE_CSS =
     "[hidden]{display:none!important}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
 
@@ -591,14 +612,68 @@
     return bgCache.get(src);
   };
 
+  /* ---------- design loading ---------- */
+  const enabledDesigns = () =>
+    (C().DESIGNS || []).filter((d) => d.enabled !== false);
+
+  const getText = (url) =>
+    fetch(url).then((r) => {
+      if (!r.ok) throw new Error(`${r.status} ${url}`);
+      return r.text();
+    });
+
+  // Cached per design: html + css (+ optional o.css). Failures are not cached.
+  const designCache = new Map();
+  const loadDesign = (design) => {
+    if (!designCache.has(design.id)) {
+      const oCssUrl =
+        design.oCss === true
+          ? design.css.replace(/[^/]+$/, "o.css")
+          : design.oCss || "";
+      designCache.set(
+        design.id,
+        Promise.all([
+          getText(design.html),
+          getText(design.css),
+          oCssUrl ? getText(oCssUrl).catch(() => "") : "",
+        ])
+          .then(([html, designCss, overrideCss]) => ({
+            design,
+            html,
+            css: designCss + (overrideCss ? "\n" + overrideCss : ""),
+          }))
+          .catch((e) => {
+            designCache.delete(design.id);
+            throw e;
+          }),
+      );
+    }
+    return designCache.get(design.id);
+  };
+
+  // Idle-time preload so the first open does not wait on the network.
+  const warm = () => {
+    if (!DLG().WARM) return;
+    loadFonts();
+    enabledDesigns().forEach((d) => {
+      loadDesign(d).catch(() => {});
+      const url = plateUrl(d);
+      if (url) resolveBg(url).catch(() => {});
+    });
+  };
+
+  let opening = false;
+
   /* ---------- dialog ---------- */
   const style = document.createElement("style");
   style.textContent = `${fontCss()}
-.cardprint{border:0;border-radius:16px;padding:${UI.PAD}px;width:min(100vw - ${UI.MARGIN}px,720px);max-height:calc(100dvh - ${UI.MARGIN}px - env(safe-area-inset-bottom,0px));overflow:auto;display:flex;flex-direction:column}
+.cardprint{border:0;border-radius:16px;padding:${UI.PAD}px;width:min(100vw - ${UI.MARGIN}px,${DLG().MAX_WIDTH}px);max-height:var(--cp-vh,90vh);overflow:auto;display:flex;flex-direction:column}
+.cardprint:not([open]){display:none}
 .cardprint::backdrop{background:rgba(15,23,42,.45)}
-.cardprint form{display:grid;grid-template-rows:auto 1fr auto;gap:${UI.GAP}px;max-height:100%;min-height:0;overflow:hidden}
+.cardprint form{display:flex;flex-direction:column;gap:${UI.GAP}px;min-height:0}
+.cardprint form>*{flex:none}
 .cardprint form>header,.cardprint form>footer{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
-.cardprint .stage{display:grid;justify-content:center;overflow:hidden;min-height:0;touch-action:none}
+.cardprint .stage{display:grid;justify-content:center;overflow:hidden;touch-action:none}
 .cardprint button,.cardprint select,.cardprint [data-title],.cardprint .pick-bg{font:inherit;min-height:36px;border:1px solid #d7e0da;border-radius:10px;background:#fff;color:inherit;padding:0 10px;cursor:pointer}
 .cardprint [data-title]{flex:1 1 auto;min-width:0;padding:0 12px;cursor:text}
 .cardprint .pick-bg{display:inline-flex;align-items:center}
@@ -611,10 +686,12 @@
 .cardprint form>footer{position:relative}
 .cardprint [data-act=save]:disabled{background:#b91c1c;border-color:#b91c1c;color:#fff;letter-spacing:.2em;cursor:progress;opacity:1}
 .share-menu{position:absolute;right:0;bottom:calc(100% + 8px);z-index:20;display:grid;gap:6px;min-width:200px;max-width:100%;background:#fff;border:1px solid #d7e0da;border-radius:12px;padding:8px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
-.share-menu button{text-align:left;justify-content:flex-start}`;
+.share-menu button{text-align:left;justify-content:flex-start}
+.card[aria-busy=true]{opacity:.6;cursor:progress}
+.cp-debug{position:fixed;left:4px;top:4px;z-index:99;pointer-events:none;background:rgba(0,0,0,.78);color:#7cfc9a;font:10px/1.35 ui-monospace,monospace;padding:4px 6px;border-radius:6px;white-space:pre}`;
   document.head.append(style);
 
-  const open = (row) => {
+  const open = async (row) => {
     const prev = saved();
     state.row = row;
     state.title = C().TITLE;
@@ -627,7 +704,7 @@
     state.format = pick(formats(), prev.format, K().DEFAULTS.format).id;
 
     const cfg = C(),
-      designs = (cfg.DESIGNS || []).filter((d) => d.enabled !== false),
+      designs = enabledDesigns(),
       multi = designs.length > 1;
     const dialog = Object.assign(document.createElement("dialog"), {
       className: "cardprint",
@@ -666,18 +743,18 @@
 
     const fit = () => {
       const root = stage.querySelector("[data-print]");
-      if (!root) return;
+      if (!root || !dialog.open) return;
       root.style.transform = "none";
       const pad = cfg.FIT_PAD;
       const chrome =
         $("form > header").offsetHeight + $("form > footer").offsetHeight;
-      const vh = window.visualViewport?.height || innerHeight;
       const availW = dialog.clientWidth - pad * 2;
-      const availH = vh - UI.MARGIN - UI.PAD * 2 - UI.GAP * 2 - chrome - pad;
+      const availH =
+        vpHeight() - UI.MARGIN - UI.PAD * 2 - UI.GAP * 2 - chrome - pad;
       const scale = Math.min(
         1,
         availW / root.offsetWidth,
-        Math.max(120, availH) / root.offsetHeight,
+        Math.max(DLG().MIN_STAGE, availH) / root.offsetHeight,
       );
       root.style.transformOrigin = "top center";
       root.style.transform = `scale(${scale})`;
@@ -691,8 +768,62 @@
       fit();
     };
 
+    // Available height comes from JS (never dvh/env math), with a floor so it cannot collapse.
+    const setViewport = () =>
+      dialog.style.setProperty(
+        "--cp-vh",
+        `${Math.max(DLG().MIN_HEIGHT, vpHeight() - UI.MARGIN)}px`,
+      );
+
+    // Give the stage its final-ish height before the dialog opens; fit() refines it later.
+    const reserveStage = () => {
+      const c = dims();
+      const pad = cfg.FIT_PAD;
+      const availW =
+        Math.min(innerWidth - UI.MARGIN, DLG().MAX_WIDTH) -
+        UI.PAD * 2 -
+        pad * 2;
+      const availH =
+        vpHeight() -
+        UI.MARGIN -
+        UI.PAD * 2 -
+        UI.GAP * 2 -
+        DLG().CHROME_EST -
+        pad;
+      const scale = Math.min(
+        1,
+        availW / c.w,
+        Math.max(DLG().MIN_STAGE, availH) / c.h,
+      );
+      stage.style.height = `${Math.round(c.h * scale)}px`;
+    };
+
     // Pre-render ("ready" option): render quietly after the last change so a tap can share at once.
     const footer = $("form > footer");
+
+    // DEBUG: on-screen sizes, for diagnosing layout problems on a real device.
+    const debug = () => {
+      if (!DLG().DEBUG) return;
+      const box =
+        dialog.querySelector(".cp-debug") ||
+        dialog.appendChild(
+          Object.assign(document.createElement("div"), {
+            className: "cp-debug",
+          }),
+        );
+      const size = (el) => {
+        const b = el.getBoundingClientRect();
+        return `${Math.round(b.width)}x${Math.round(b.height)}`;
+      };
+      const vv = window.visualViewport;
+      box.textContent = [
+        `win ${innerWidth}x${innerHeight}  vv ${Math.round(vv?.width || 0)}x${Math.round(vv?.height || 0)}`,
+        `dialog ${size(dialog)} open=${dialog.open} maxH=${getComputedStyle(dialog).maxHeight}`,
+        `form ${size($("form"))}  stage ${size(stage)}`,
+        `header ${$("form > header").offsetHeight}  footer ${footer.offsetHeight}`,
+        `--cp-vh ${dialog.style.getPropertyValue("--cp-vh")}  paint#${painting}`,
+      ].join("\n");
+    };
     const prerender = { timer: 0, run: 0, job: null, file: null, sig: "" };
     const sig = () =>
       JSON.stringify([
@@ -751,7 +882,10 @@
       };
       return task()
         .catch(() => alert(B().POPUP))
-        .finally(() => { btn.disabled = false; btn.textContent = exportLabel; });
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = exportLabel;
+        });
     };
 
     const onSave = () => {
@@ -774,31 +908,9 @@
       });
     };
 
-    const loadDesign = async () => {
-      const design = designs[state.index];
-      const oCssUrl =
-        design.oCss === true
-          ? design.css.replace(/[^/]+$/, "o.css")
-          : design.oCss || "";
-      const [html, designCss, overrideCss] = await Promise.all([
-        fetch(design.html).then((r) => r.text()),
-        fetch(design.css).then((r) => r.text()),
-        oCssUrl
-          ? fetch(oCssUrl)
-              .then((r) => (r.ok ? r.text() : ""))
-              .catch(() => "")
-          : Promise.resolve(""),
-      ]);
-      return {
-        design,
-        html,
-        css: designCss + (overrideCss ? "\n" + overrideCss : ""),
-      };
-    };
-
     const paint = async () => {
       const run = ++painting;
-      const loaded = await loadDesign();
+      const loaded = await loadDesign(designs[state.index]);
       if (run !== painting) return;
       css = loaded.css;
       stage.innerHTML = `<style>${BASE_CSS}${css}</style>${loaded.html}`;
@@ -808,15 +920,20 @@
       $('[data-act="reset"]').hidden = !state.bg;
       await waitBg(stage.querySelector("[data-plate]"));
       await loadFonts();
-      if (run === painting) {
+      if (run === painting && dialog.open) {
         relayout();
         touch();
+        debug();
       }
     };
 
+    // For changes made while the dialog is open: failures are reported, never left hanging.
+    const repaint = () =>
+      withTimeout(paint(), DLG().TIMEOUT_MS).catch(() => alert(loadError()));
+
     const step = (n) => {
       state.index = (state.index + n + designs.length) % designs.length;
-      paint();
+      repaint();
     };
 
     const showBgPicker = () => {
@@ -842,7 +959,7 @@
           const abs = new URL(btn.dataset.file, BASE).href;
           state.bg = await resolveBg(abs).catch(() => abs);
           picker.remove();
-          paint();
+          repaint();
         } else if (btn.dataset.act === "upload") {
           $("[data-bg]").click();
           picker.remove();
@@ -851,6 +968,13 @@
     };
 
     dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) {
+        // A tap on the backdrop (or the dialog's own padding, outside its box) closes it.
+        const r = dialog.getBoundingClientRect();
+        const { clientX: x, clientY: y } = event;
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom)
+          return dialog.close();
+      }
       if (!event.target.closest(".share-menu,[data-act=save]"))
         closeMenu(footer);
       const act = event.target.closest("[data-act]")?.dataset.act;
@@ -861,7 +985,7 @@
           step(1 + Math.floor(Math.random() * (designs.length - 1)));
       } else if (act === "reset") {
         dropBg();
-        paint();
+        repaint();
       } else if (act === "bg-pick") showBgPicker();
       else if (act === "save") onSave();
       else if (act === "close") dialog.close();
@@ -952,48 +1076,87 @@
       if (!file) return;
       dropBg();
       state.bg = await shrink(file);
-      paint();
+      repaint();
     });
 
     $("form").addEventListener("submit", (event) => event.preventDefault());
 
-    const onResize = () => fit();
+    const onResize = () => {
+      setViewport();
+      fit();
+      debug();
+    };
     addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("resize", onResize);
-    dialog.addEventListener("close", () => {
+    const cleanup = () => {
       removeEventListener("resize", onResize);
       window.visualViewport?.removeEventListener("resize", onResize);
+      painting++;
       prerender.run++;
       clearTimeout(prerender.timer);
       dropBg();
       dialog.remove();
-    });
+    };
+    dialog.addEventListener("close", cleanup);
+    // Never leave a dead modal behind: clean up and tell the user.
+    const fail = () => {
+      cleanup();
+      alert(loadError());
+    };
 
+    // Load first, show second, so the modal never appears empty.
+    syncOrientation();
     try {
+      await withTimeout(paint(), DLG().TIMEOUT_MS);
+      setViewport();
+      reserveStage();
       dialog.showModal();
     } catch (e) {
-      dialog.remove();
-      return;
+      return fail();
     }
-    if (!dialog.open) {
-      dialog.remove();
-      return;
+    if (!dialog.open) return fail();
+    try {
+      relayout();
+      touch();
+      debug();
+    } catch (e) {
+      return fail();
     }
-    syncOrientation();
-    paint();
+    // A collapsed layout must not trap the user behind a modal: check now and once more shortly after.
+    const healthy = () => $("form").offsetHeight >= DLG().MIN_HEIGHT;
+    if (!healthy()) return fail();
+    setTimeout(() => {
+      if (!dialog.isConnected) return;
+      if (dialog.open && !healthy()) return fail();
+      debug();
+    }, DLG().CHECK_MS);
   };
 
   const bind = () => {
     const cards = document.getElementById("cards");
     if (!cards) return;
     cards.addEventListener("click", (event) => {
-      const hit = event.target.closest(".origin-hit, .route-top > div:first-child");
+      const hit = event.target.closest(
+        ".origin-hit, .route-top > div:first-child",
+      );
       const card = hit && hit.closest(".card");
       if (!card) return;
       event.preventDefault();
       const row = ((window.ACT && ACT.visible) || [])[Number(card.dataset.i)];
-      if (row) open(row);
+      if (!row || opening) return;
+      opening = true;
+      card.setAttribute("aria-busy", "true");
+      open(row)
+        .catch(() => alert(loadError()))
+        .finally(() => {
+          opening = false;
+          card.removeAttribute("aria-busy");
+        });
     });
+    const idle = window.requestIdleCallback
+      ? (f) => requestIdleCallback(f)
+      : (f) => setTimeout(f, DLG().WARM_DELAY_MS);
+    idle(warm);
   };
   document.readyState === "loading"
     ? addEventListener("DOMContentLoaded", bind)

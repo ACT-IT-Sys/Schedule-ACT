@@ -184,11 +184,10 @@
                     <div class="end"><span class="k">${esc(CONFIG.LABELS.ARRIVAL)}</span><span class="v date arrive">${esc(formatDate(item.eta))}</span></div>
                 </div>
                 <p class="card-foot">${esc(CONFIG.LABELS.VGM_BEFORE)} <b>${esc(item.vgmHours)}</b> ${esc(CONFIG.LABELS.VGM_HOURS)} <b>${esc(formatDate(item.cfsCutOff))}</b> ${esc(CONFIG.LABELS.CFS_AFTER)}</p>
-                ${
-                  item.port
-                    ? `<p class="card-port"><span style="font-weight: bold; color: var(--brand-strong);">PORT - </span>${esc(item.port).toUpperCase()}</p>`
-                    : ""
-                }
+                <div class="card-port-row">
+                  ${item.port ? `<p class="card-port"><span style="font-weight: bold; color: var(--brand-strong);">PORT - </span>${esc(item.port).toUpperCase()}</p>` : `<span></span>`}
+                  <button type="button" class="inquire-btn" data-i="${i}">${esc((CONFIG.INQUIRE||{}).LABEL||"Inquire")}</button>
+                </div>
             </article>`;
           })
           .join("")
@@ -330,6 +329,39 @@
     } catch (e) {}
   }
 
+
+  function inquireMessage(row) {
+    const Q = CONFIG.INQUIRE || {};
+    return (Q.TEMPLATE || "")
+      .replace("{origin}", row.origin || "")
+      .replace("{destination}", row.destination || "")
+      .replace("{vessel}", row.vessel || "")
+      .replace("{voyage}", row.voyage || "")
+      .replace("{etd}", formatDate(row.etd) || "");
+  }
+  function openInquire(row, host) {
+    const Q = CONFIG.INQUIRE || {};
+    const msg = inquireMessage(row);
+    document.querySelector(".inquire-menu")?.remove();
+    const menu = document.createElement("div");
+    menu.className = "inquire-menu";
+    menu.innerHTML = (Q.ACTIONS || [])
+      .map((a) => `<button type="button" data-inq="${a.id}">${a.label}</button>`)
+      .join("");
+    host.append(menu);
+    menu.addEventListener("click", (e) => {
+      const id = e.target.closest("[data-inq]")?.dataset.inq;
+      if (!id) return;
+      const text = encodeURIComponent(msg);
+      const href =
+        id === "wa" ? `https://wa.me/${Q.WA}?text=${text}` :
+        id === "email" ? `mailto:${Q.EMAIL}?subject=${encodeURIComponent(Q.LABEL||"Inquiry")}&body=${text}` :
+        Q.WEB;
+      if (href) window.open(href, "_blank", "noopener");
+      menu.remove();
+    });
+  }
+
   function pwaBanner() {
     const P = CONFIG.PWA || {};
     const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
@@ -364,5 +396,15 @@
     });
   }
 
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".inquire-btn");
+    if (!btn) {
+      if (!e.target.closest(".inquire-menu")) document.querySelector(".inquire-menu")?.remove();
+      return;
+    }
+    e.stopPropagation();
+    const row = (window.ACT && ACT.visible || [])[Number(btn.dataset.i)];
+    if (row) openInquire(row, btn.parentElement);
+  });
   window.addEventListener("DOMContentLoaded", () => { init(); pwaBanner(); });
 })();

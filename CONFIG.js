@@ -242,6 +242,19 @@ const CONFIG = {
     ],
   },
 
+  INQUIRE: {
+    LABEL: "Inquire",
+    WA: "6281234567890",
+    EMAIL: "sales@actglobal-freight.com",
+    WEB: "https://actglobal-freight.com",
+    TEMPLATE: "Inquiry: {origin} to {destination}, {vessel} {voyage}, ETD {etd}",
+    ACTIONS: [
+      { id: "wa", label: "WhatsApp" },
+      { id: "email", label: "Email" },
+      { id: "web", label: "Website" },
+    ],
+  },
+
   CP: {
     TAB: "CP",
     EMPTY: "—",

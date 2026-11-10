@@ -81,6 +81,19 @@ const CP_CONFIG = {
     REVOKE_MS: 60000, // how long a download link stays valid
   },
 
+  // Dialog layout and safety nets.
+  DIALOG: {
+    MAX_WIDTH: 720, // px, widest the dialog gets
+    MIN_HEIGHT: 120, // px, a form shorter than this counts as a collapsed layout: the dialog closes
+    MIN_STAGE: 120, // px, smallest height the card preview is scaled down to
+    CHROME_EST: 96, // px, estimated header + footer height, used before the dialog can be measured
+    TIMEOUT_MS: 8000, // opening gives up (and tells the user) if loading takes longer than this
+    CHECK_MS: 1000, // delay of the second layout check after opening
+    WARM: true, // preload designs, fonts and default backgrounds while the page is idle
+    WARM_DELAY_MS: 1500, // idle delay where requestIdleCallback is missing (Safari)
+    DEBUG: false, // true = show dialog / viewport sizes on screen
+  },
+
   // Shrink-to-fit: passes and safety margin when content overflows the canvas.
   FIT: { MAX_PASSES: 4, SAFETY: 0.98 },
 
@@ -101,6 +114,7 @@ const CP_CONFIG = {
     FIT_WIDTH: "Fit width",
     EXPORT: "Export",
     WAIT: "W A I T",
+    LOAD_ERROR: "The card could not be opened. Please try again.",
   },
 
   // Short display labels for card fields. Stable against sheet header renames.
