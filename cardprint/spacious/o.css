@@ -1,3 +1,15 @@
-footer {
+body > dialog > form > div > div > div > div > footer {
   display: none !important;
+}
+.cp-flyer .details-card {
+  background: rgb(2 44 50 / 25%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: calc(14 * var(--cp-u));
+  padding: calc(14 * var(--cp-u)) calc(16 * var(--cp-u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--cp-u));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
