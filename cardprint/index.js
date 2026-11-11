@@ -171,7 +171,10 @@
   const title = () => {
     const raw = state.title.trim() || C().TITLE;
     const br = C().TITLE_BREAK || "|";
-    return raw.split(br).map((s) => s.trim()).join("\n");
+    return raw
+      .split(br)
+      .map((s) => s.trim())
+      .join("\n");
   };
 
   const dateParts = (src) => {
@@ -728,7 +731,7 @@
         .join("")}</select>`;
 
     dialog.innerHTML = `<form method="dialog">
-<header>${multi ? nav("prev", cfg.PREV, "‹") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "›") + nav("dice", cfg.DICE, "🎲") : ""}<button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>${nav("reset", cfg.RESET_BG, "↺", " hidden")}<button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button><button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>${nav("close", cfg.CLOSE, "❌")}</header>
+<header>${multi ? nav("prev", cfg.PREV, "‹-") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "-›") + nav("dice", cfg.DICE, "🎲") : ""}<button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>${nav("reset", cfg.RESET_BG, "↺", " hidden")}<button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button><button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>${nav("close", cfg.CLOSE, "❌")}</header>
 <div class="stage" data-stage></div>
 <footer>
   <input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}">
@@ -1018,7 +1021,8 @@
       const key = event.target.dataset.pick;
       if (!key) return;
       state[key] = event.target.value;
-      if (key === "orientation" && !designLock()) state.userOrientation = state.orientation;
+      if (key === "orientation" && !designLock())
+        state.userOrientation = state.orientation;
       syncOrientation();
       remember();
       if (key !== "format") relayout();

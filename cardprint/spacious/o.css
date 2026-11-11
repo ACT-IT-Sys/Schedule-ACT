@@ -13,3 +13,84 @@ body > dialog > form > div > div > div > div > footer {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
+
+.cp-flyer .flyer-body {
+  width: 58%;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--cp-u));
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  align-content: flex-end;
+  align-items: flex-end;
+}
+.cp-flyer[data-layout="wide"] .details-card {
+  padding: calc(10 * var(--cp-u)) calc(35 * var(--cp-u));
+  gap: calc(14 * var(--cp-u));
+}
+.cp-flyer .logo-mark {
+  width: calc(64 * var(--cp-u));
+  height: calc(64 * var(--cp-u));
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: calc(10 * var(--cp-u));
+  background: #ffffff;
+}
+
+body
+  > dialog
+  > form
+  > div
+  > div
+  > div
+  > div
+  > main
+  > div.flyer-titles
+  > div
+  > span:nth-child(1),
+body
+  > dialog
+  > form
+  > div
+  > div
+  > div
+  > div
+  > main
+  > div.flyer-titles
+  > div
+  > span:nth-child(2) {
+  font-size: calc(18 * var(--cp-u));
+}
+
+body
+  > dialog
+  > form
+  > div
+  > div
+  > div
+  > div
+  > main
+  > div.details-card
+  > div:nth-child(n + 1)
+  > div.detail-content
+  > span.detail-value {
+  letter-spacing: 1px;
+}
+
+.cp-flyer .logo-text {
+  display: flex;
+  flex-direction: column;
+  align-content: flex-end;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transform: scale(1.5);
+  padding-left: 20px;
+}

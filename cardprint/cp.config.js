@@ -196,6 +196,7 @@ const CP_CONFIG = {
       html: "cardprint/spacious/design.html",
       css: "cardprint/spacious/design.css",
       bg: "bg/portharbour.webp",
+      orientation: "landscape",
       enabled: true,
       oCss: true, // loads cardprint/spacious/o.css after design.css
     },
