@@ -18,7 +18,7 @@ const CP_CONFIG = {
 
   // Ratios are written portrait (w < h). Landscape swaps them. 1:1 has no orientation.
   RATIOS: [
-    { id: "1:1", label: "1:1", w: 1, h: 1 },
+    // { id: "1:1", label: "1:1", w: 1, h: 1 },
     { id: "3:4", label: "3:4", w: 3, h: 4 },
     { id: "9:16", label: "9:16", w: 9, h: 16 },
   ],
@@ -72,8 +72,8 @@ const CP_CONFIG = {
   // Where the browser cannot share files, share / ready fall back to a normal download.
   SHARE: {
     OPTIONS: [
-      { id: "download", label: "Download file", enabled: false },
-      { id: "share", label: "Share / Save to Photos", enabled: true },
+      { id: "download", label: "Download", enabled: true },
+      { id: "share", label: "HD Share", enabled: true },
       { id: "ready", label: "Quick share", enabled: true },
     ],
     READY_LABEL: "Save image", // button shown by the "share" option once the image is ready
