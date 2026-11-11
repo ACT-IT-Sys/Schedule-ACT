@@ -276,7 +276,9 @@
       });
     }
     root.querySelectorAll("img[src]").forEach((img) => {
-      img.src = new URL(img.getAttribute("src"), location.href).href;
+      const src = img.getAttribute("src");
+      if (!src || src.startsWith("data:") || /^https?:/i.test(src)) return;
+      img.src = new URL(src.replace(/^\//, ""), BASE).href;
     });
     const plate = root.querySelector("[data-plate]");
     if (plate) {
