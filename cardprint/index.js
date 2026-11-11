@@ -51,7 +51,7 @@
       new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
     ]);
   const BASE_CSS =
-    "[hidden]{display:none!important}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
+    "[hidden]{display:none!important}[data-field=title]{white-space:pre-line}[data-print],[data-print] *,[data-print] *::before,[data-print] *::after{box-sizing:border-box}";
 
   const BASE = document.currentScript
     ? new URL(".", document.currentScript.src).href
@@ -73,6 +73,7 @@
     orientation: "",
     format: "",
     fit: "height",
+    userOrientation: "",
     offsetX: 0,
     offsetY: 0,
   };
@@ -167,7 +168,11 @@
   };
 
   /* ---------- design data ---------- */
-  const title = () => state.title.trim() || C().TITLE;
+  const title = () => {
+    const raw = state.title.trim() || C().TITLE;
+    const br = C().TITLE_BREAK || "|";
+    return raw.split(br).map((s) => s.trim()).join("\n");
+  };
 
   const dateParts = (src) => {
     const d = window.ACT && ACT.parseDate(src);
@@ -702,6 +707,7 @@
       K().DEFAULTS.orientation,
     ).id;
     state.format = pick(formats(), prev.format, K().DEFAULTS.format).id;
+    state.userOrientation = state.orientation;
 
     const cfg = C(),
       designs = enabledDesigns(),
@@ -737,8 +743,22 @@
     let css = "",
       painting = 0;
 
+    const designLock = () => {
+      const o = (designs[state.index] || {}).orientation;
+      return o === "portrait" || o === "landscape" ? o : "";
+    };
     const syncOrientation = () => {
-      $('[data-pick="orientation"]').disabled = isSquare();
+      const lock = designLock();
+      const sel = $('[data-pick="orientation"]');
+      if (!sel) return;
+      if (lock && !isSquare()) {
+        state.orientation = lock;
+        sel.value = lock;
+      } else if (!lock && state.userOrientation) {
+        state.orientation = state.userOrientation;
+        sel.value = state.userOrientation;
+      }
+      sel.disabled = isSquare() || !!lock;
     };
 
     const fit = () => {
@@ -933,6 +953,7 @@
 
     const step = (n) => {
       state.index = (state.index + n + designs.length) % designs.length;
+      syncOrientation();
       repaint();
     };
 
@@ -995,6 +1016,7 @@
       const key = event.target.dataset.pick;
       if (!key) return;
       state[key] = event.target.value;
+      if (key === "orientation" && !designLock()) state.userOrientation = state.orientation;
       syncOrientation();
       remember();
       if (key !== "format") relayout();

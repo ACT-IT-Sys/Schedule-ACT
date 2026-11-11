@@ -135,6 +135,7 @@ const CP_CONFIG = {
   ADDRESS: ["Jl. Perak Timur No. 248", "Tanjung Perak, Surabaya 60165"],
   SITE: "https://actglobal-freight.com",
   TITLE: "LCL IMPORT",
+  TITLE_BREAK: "//", // each marker becomes a new line in the card title
   bg: "", // global fallback; empty = no image (design paints its own)
   FIT_PAD: 16,
   DATE_PARTS: ["YYYY", "YY", "MMMM", "MMM", "MM", "DD", "D"],
@@ -173,6 +174,7 @@ const CP_CONFIG = {
     {
       id: "import-light",
       label: "Import glass",
+      orientation: "both", // "portrait" | "landscape" | "both" (omit = both)
       html: "cardprint/import-light/design.html",
       css: "cardprint/import-light/design.css",
       bg: "bg/AIO.webp",
@@ -189,13 +191,13 @@ const CP_CONFIG = {
       oCss: true, // loads cardprint/import-dark/o.css after design.css
     },
     {
-      id: "import-a",
-      label: "Import",
-      html: "cardprint/import-a/design.html",
-      css: "cardprint/import-a/design.css",
-      bg: "bg/AIO.webp",
-      enabled: false,
-      oCss: true, // loads cardprint/import-a/o.css after design.css
+      id: "spacious",
+      label: "Spacious",
+      html: "cardprint/spacious/design.html",
+      css: "cardprint/spacious/design.css",
+      bg: "bg/portharbour.webp",
+      enabled: true,
+      oCss: true, // loads cardprint/spacious/o.css after design.css
     },
     {
       id: "modern-1",
@@ -212,5 +214,6 @@ const CP_CONFIG = {
     { id: "aio", label: "AIO", file: "bg/AIO.webp" },
     { id: "shanghai", label: "Shanghai", file: "bg/shanghai.webp" },
     { id: "scanner", label: "Scanner", file: "bg/scanner.webp" },
+    { id: "portharbour", label: "Port Harbour", file: "bg/portharbour.webp" },
   ],
 };

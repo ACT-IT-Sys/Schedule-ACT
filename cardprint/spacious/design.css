@@ -1,0 +1,266 @@
+.cp-flyer {
+  --cg-card-w: 1;
+  --cg-card-h: 1;
+  --cg-ref-w: 420;
+  --cg-ref-h: 600;
+  --cg-min-font: 8px;
+
+  --cp-u: calc(
+    min(
+        var(--cp-wn) * var(--cg-card-w) / var(--cg-ref-w),
+        var(--cp-hn) * var(--cg-card-h) / var(--cg-ref-h)
+      ) *
+      var(--cp-fit, 1) * 1px
+  );
+
+  width: calc(var(--cp-wn) * 1px);
+  height: calc(var(--cp-hn) * 1px);
+  overflow: hidden;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  box-sizing: border-box;
+}
+
+.cp-flyer[data-layout="wide"] {
+  --cg-ref-w: 640;
+  --cg-ref-h: 360;
+}
+
+.cp-flyer * {
+  box-sizing: border-box;
+}
+
+.cp-flyer .plate {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b1c2c;
+}
+
+.cp-flyer .flyer-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(16 * var(--cp-u));
+}
+
+/* Header */
+.cp-flyer .flyer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.cp-flyer .brand-logo-group {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--cp-u));
+}
+
+.cp-flyer .logo-mark {
+  width: calc(32 * var(--cp-u));
+  height: calc(32 * var(--cp-u));
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: calc(10 * var(--cp-u));
+}
+
+.cp-flyer .logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-flyer .logo-title {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: calc(11 * var(--cp-u));
+  letter-spacing: 0.05em;
+}
+
+.cp-flyer .logo-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: calc(8 * var(--cp-u));
+}
+
+.cp-flyer .badges-group {
+  display: flex;
+  gap: calc(6 * var(--cp-u));
+  align-items: center;
+}
+
+.cp-flyer .iso-badge,
+.cp-flyer .halal-badge {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: calc(4 * var(--cp-u));
+  padding: calc(4 * var(--cp-u)) calc(6 * var(--cp-u));
+  color: #ffffff;
+  font-size: max(var(--cg-min-font), calc(7 * var(--cp-u)));
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.cp-flyer .halal-badge small {
+  font-size: max(var(--cg-min-font), calc(5 * var(--cp-u)));
+  display: block;
+}
+
+/* Main Body (Right-Aligned Split) */
+.cp-flyer .flyer-body {
+  width: 58%;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--cp-u));
+}
+
+.cp-flyer[data-layout="wide"] .flyer-body {
+  width: 52%;
+  gap: calc(8 * var(--cp-u));
+}
+
+.cp-flyer .flyer-titles {
+  text-align: center;
+}
+
+.cp-flyer .main-title {
+  color: #ffffff;
+  font-size: calc(22 * var(--cp-u));
+  font-weight: 900;
+  line-height: 1.15;
+  text-transform: uppercase;
+  margin: 0 0 calc(8 * var(--cp-u)) 0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.cp-flyer[data-layout="wide"] .main-title {
+  font-size: calc(18 * var(--cp-u));
+  margin-bottom: calc(6 * var(--cp-u));
+}
+
+.cp-flyer .route-pill {
+  display: inline-block;
+  background-color: #e53935;
+  color: #ffffff;
+  font-size: calc(12 * var(--cp-u));
+  font-weight: 700;
+  padding: calc(5 * var(--cp-u)) calc(14 * var(--cp-u));
+  border-radius: calc(10 * var(--cp-u));
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Details Card */
+.cp-flyer .details-card {
+  background: rgba(15, 32, 67, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: calc(14 * var(--cp-u));
+  padding: calc(14 * var(--cp-u)) calc(16 * var(--cp-u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--cp-u));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.cp-flyer[data-layout="wide"] .details-card {
+  padding: calc(10 * var(--cp-u)) calc(14 * var(--cp-u));
+  gap: calc(6 * var(--cp-u));
+}
+
+.cp-flyer .detail-row {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--cp-u));
+}
+
+.cp-flyer .detail-icon {
+  width: calc(26 * var(--cp-u));
+  height: calc(26 * var(--cp-u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(var(--cg-min-font), calc(8 * var(--cp-u)));
+  font-weight: 700;
+  color: #ffffff;
+  border: 1px dashed rgba(255, 255, 255, 0.55);
+  border-radius: calc(4 * var(--cp-u));
+  flex-shrink: 0;
+}
+
+.cp-flyer .detail-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-flyer .detail-label {
+  color: #cbd5e1;
+  font-size: max(var(--cg-min-font), calc(9 * var(--cp-u)));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cp-flyer .detail-value {
+  color: #ffffff;
+  font-size: calc(13 * var(--cp-u));
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Footer */
+.cp-flyer .flyer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(10, 20, 35, 0.88);
+  backdrop-filter: blur(8px);
+  padding: calc(7 * var(--cp-u)) calc(10 * var(--cp-u));
+  border-radius: calc(8 * var(--cp-u));
+  gap: calc(6 * var(--cp-u));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cp-flyer .social-item {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--cp-u));
+}
+
+.cp-flyer .social-icon {
+  width: calc(14 * var(--cp-u));
+  height: calc(14 * var(--cp-u));
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0f2043;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(var(--cg-min-font), calc(7 * var(--cp-u)));
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.cp-flyer .social-text {
+  color: #ffffff;
+  font-size: max(var(--cg-min-font), calc(7 * var(--cp-u)));
+  font-weight: 600;
+}
