@@ -1,3 +1,7 @@
+body > dialog > form > header > button:nth-child(7) {
+  writing-mode: sideways-lr;
+  text-orientation: upright;
+}
 /* 1. Base / Desktop styles first */
 .bg-picker {
   box-shadow: 0 10px 50px rgba(15, 23, 42, 0.85) !important;
@@ -8,7 +12,8 @@ body > dialog > form > header > button.pick-bg {
   z-index: 21;
 }
 
-#groupBySelect {
+#groupBySelect,
+body > dialog > form > header > button:nth-child(4) {
   display: none !important;
 }
 

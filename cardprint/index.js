@@ -731,7 +731,7 @@
         .join("")}</select>`;
 
     dialog.innerHTML = `<form method="dialog">
-<header>${multi ? nav("prev", cfg.PREV, "‹-") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "-›") + nav("dice", cfg.DICE, "🎲") : ""}<button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>${nav("reset", cfg.RESET_BG, "↺", " hidden")}<button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}>↕</button><button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}>↔</button>${nav("close", cfg.CLOSE, "❌")}</header>
+<header>${multi ? nav("prev", cfg.PREV, "‹-") : ""}<input data-title value="${esc(state.title)}" aria-label="${esc(B().TITLE_PROMPT)}">${multi ? nav("next", cfg.NEXT, "-›") + nav("dice", cfg.DICE, "🎲") : ""}<button type="button" class="pick-bg" data-act="bg-pick" title="${esc(cfg.BG_LABEL)}">🖼️</button>${nav("reset", cfg.RESET_BG, "↺", " hidden")}<button type="button" data-act="fit-height" title="${esc(cfg.LABELS.FIT_HEIGHT)}" ${state.fit === "height" ? "aria-pressed=true" : ""}><--></button><button type="button" data-act="fit-width" title="${esc(cfg.LABELS.FIT_WIDTH)}" ${state.fit === "width" ? "aria-pressed=true" : ""}><--></button>${nav("close", cfg.CLOSE, "❌")}</header>
 <div class="stage" data-stage></div>
 <footer>
   <input type="file" accept="image/*" data-bg hidden aria-label="${esc(cfg.BG_LABEL)}">
