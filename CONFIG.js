@@ -184,7 +184,7 @@ const CONFIG = {
     ],
     AS_DEFAULT: "print",
     LAYOUT_DEFAULT: "single",
-    TITLE: "LCL import consol schedules",
+    TITLE: "LCL Import Consolidation Schedule",
     TITLE_PROMPT: "Schedule title",
     PRINT_AS: "Print as",
     FORMAT: "Format",
@@ -247,7 +247,8 @@ const CONFIG = {
     WA: "6281234567890",
     EMAIL: "sales@actglobal-freight.com",
     WEB: "https://actglobal-freight.com",
-    TEMPLATE: "Inquiry: {origin} to {destination}, {vessel} {voyage}, ETD {etd}",
+    TEMPLATE:
+      "Inquiry: {origin} to {destination}, {vessel} {voyage}, ETD {etd}",
     ACTIONS: [
       { id: "wa", label: "WhatsApp" },
       { id: "email", label: "Email" },
@@ -287,7 +288,8 @@ const CONFIG = {
     ],
     SNOOZE_DAYS: 3,
     SNOOZE_KEY: "schedule-act-pwa-snooze",
-    PROMPT: "Install the app for a full-screen view and fewer browser issues on mobile.",
+    PROMPT:
+      "Install the app for a full-screen view and fewer browser issues on mobile.",
     INSTALL: "Install",
     LATER: "Not now",
     IOS_HINT: "On iPhone: tap Share, then Add to Home Screen.",
