@@ -191,7 +191,7 @@ const CONFIG = {
     EXECUTE: "Execute",
     POPUP: "Allow popups to print the bulk sheet.",
     BODY_BG: "#ffffff",
-    TBN: "T.B.N.",
+    TBN: "T.B.A.",
     VGM: "VGM cut-off:",
     ORIGIN_ORDER: [
       "Taiwan",
