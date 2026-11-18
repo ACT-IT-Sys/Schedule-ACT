@@ -30,6 +30,7 @@ body > dialog > form > div > div > div > div > footer {
   gap: calc(14 * var(--cp-u));
 }
 .cp-flyer .logo-mark {
+  padding: calc(5 * var(--cp-u));
   width: calc(64 * var(--cp-u));
   height: calc(64 * var(--cp-u));
   border: 2px solid #ffffff;
@@ -87,10 +88,10 @@ body
 .cp-flyer .logo-text {
   display: flex;
   flex-direction: column;
-  align-content: flex-end;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: nowrap;
   transform: scale(1.5);
-  padding-left: 20px;
+  padding-left: 32px;
+  align-content: space-around;
 }
