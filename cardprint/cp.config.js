@@ -214,7 +214,6 @@ const CP_CONFIG = {
   BACKGROUNDS: [
     { id: "aio", label: "AIO", file: "bg/AIO.webp" },
     { id: "shanghai", label: "Shanghai", file: "bg/shanghai.webp" },
-    { id: "scanner", label: "Scanner", file: "bg/scanner.webp" },
     { id: "portharbour", label: "Port Harbour", file: "bg/portharbour.webp" },
     { id: "reliability", label: "Reliability", file: "bg/reliability.webp" },
     { id: "air", label: "Air", file: "bg/air.webp" },
